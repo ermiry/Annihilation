@@ -7,17 +7,37 @@
 
 #include "annihilation.h"
 
+#include "game.h"
+
 #include "textures.h"
-#include "sprites.h"
-#include "animation.h"
 
 /*** RENDERING ***/
 
+// TODO: do we want to move rendering to its own file or to the game src?
+
+extern GameObject **gameObjects;
+extern u32 curr_max_objs;
+
+// TODO: render by layers
 void render (SDL_Renderer *renderer) {
 
-    // SDL_SetRenderDrawColor (renderer, 0, 0, 0, 255);
-    // SDL_RenderClear (renderer);
-    // SDL_RenderPresent (renderer);
+    SDL_RenderClear (renderer);
+
+    Graphics *graphics = NULL;
+    for (u32 i = 0; i < curr_max_objs; i++) {
+        graphics = (Graphics *) game_object_get_component (gameObjects[i], GRAPHICS_COMP);
+        if (graphics) {
+            if (graphics->multipleSprites)
+                texture_draw_frame (renderer, graphics->spriteSheet, 0, 0, 
+                graphics->x_sprite_offset, graphics->y_sprite_offset,
+                SDL_FLIP_NONE);
+            
+            else
+                texture_draw (renderer, graphics->sprite, 0, 0, SDL_FLIP_NONE);
+        }
+    }
+
+    SDL_RenderPresent (renderer);
 
 }
 
@@ -53,40 +73,28 @@ bool running = false;
 bool inGame = false;
 bool wasInGame = false;
 
+SDL_Window *window = NULL;
+SDL_Renderer *renderer = NULL;
+
 int main (void) {
 
     srand ((unsigned) time (NULL));
 
-    SDL_Window *window = NULL;
-    SDL_Renderer *renderer = NULL;
     sdl_setUp (&window, &renderer);
 
     SDL_Event event;
+
+    game_init ();
 
     u32 timePerFrame = 1000 / FPS_LIMIT;
     u32 frameStart;
     i32 sleepTime;
 
-    SpriteSheet *player_sprite_sheet = sprite_sheet_load ("./assets/adventurer-sprites.png", renderer);
-    sprite_sheet_set_sprite_size (player_sprite_sheet, 50, 37);
-    sprite_sheet_set_scale_factor (player_sprite_sheet, 4);
-    sprite_sheet_crop (player_sprite_sheet);
-
-    Animation *player_idle_anim = animation_create (player_sprite_sheet, 4, player_sprite_sheet->individualSprites[0][0],
-        player_sprite_sheet->individualSprites[1][0], player_sprite_sheet->individualSprites[2][0],
-        player_sprite_sheet->individualSprites[3][0]);
-    animation_set_speed (player_idle_anim, 300);
-
-    Animation *player_run_anim = animation_create (player_sprite_sheet, 6, player_sprite_sheet->individualSprites[0][1],
-        player_sprite_sheet->individualSprites[1][1], player_sprite_sheet->individualSprites[2][1],
-        player_sprite_sheet->individualSprites[3][1], player_sprite_sheet->individualSprites[4][1],
-        player_sprite_sheet->individualSprites[5][1]);
-    animation_set_speed (player_run_anim, 150);
-
     running = true;
     while (running) {
         frameStart = SDL_GetTicks ();
         
+        // TODO: create a thread to handle events?
         while (SDL_PollEvent (&event) != 0) {
             if (event.type == SDL_QUIT) {
                 running = false;
@@ -94,27 +102,15 @@ int main (void) {
             } 
         }
 
-        // select player animation
-        int currFrame = (int) (((SDL_GetTicks () / player_run_anim->speed) % player_run_anim->n_frames));
-        int x_offset = player_run_anim->frames[currFrame]->col;
-        int y_offset = player_run_anim->frames[currFrame]->row;
+        // TODO: create a separte thread
+        game_update ();
 
-        // render (renderer);
-        {
-            SDL_RenderClear (renderer);
-            texture_draw_frame (renderer, player_sprite_sheet, 0, 0, x_offset, y_offset, SDL_FLIP_NONE);
-            SDL_RenderPresent (renderer);
-        }
+        render (renderer);
 
         // limit the FPS
         sleepTime = timePerFrame - (SDL_GetTicks () - frameStart);
         if (sleepTime > 0) SDL_Delay (sleepTime);
     }
-
-    animation_destroy (player_idle_anim);
-    animation_destroy (player_run_anim);
-
-    sprite_sheet_destroy (player_sprite_sheet);
 
     cleanUp (window, renderer);
 

@@ -8,36 +8,30 @@
 
 /*** ANIMATION ***/
 
-Animation *animation_create (SpriteSheet *spriteSheet, u8 n_frames, ...) {
+Animation *animation_create (u8 n_frames, ...) {
 
-    if (spriteSheet) {
-        va_list valist;
-        va_start (valist, n_frames);
+    va_list valist;
+    va_start (valist, n_frames);
 
-        Animation *animation = (Animation *) malloc (sizeof (Animation));
-        if (animation) {
-            animation->spriteSheet = spriteSheet;
-            animation->speed = DEFAULT_ANIM_SPEED;
-            animation->n_frames = n_frames;
-            animation->frames = (Sprite **) calloc (n_frames, sizeof (Sprite *));
+    Animation *animation = (Animation *) malloc (sizeof (Animation));
+    if (animation) {
+        animation->speed = DEFAULT_ANIM_SPEED;
+        animation->n_frames = n_frames;
+        animation->frames = (IndividualSprite **) calloc (n_frames, sizeof (IndividualSprite *));
 
-            for (u8 i = 0; i < n_frames; i++)
-                animation->frames[i] = va_arg (valist, Sprite *);
+        for (u8 i = 0; i < n_frames; i++)
+            animation->frames[i] = va_arg (valist, IndividualSprite *);
 
-            va_end (valist);
-
-            return animation;
-        }
+        va_end (valist);
     }
 
-    return NULL;
+    return animation;
 
 }
 
 void animation_destroy (Animation *animation) {
 
     if (animation) {
-        animation->spriteSheet = NULL;
         if (animation->frames) free (animation->frames);
 
         free (animation);
@@ -50,3 +44,6 @@ void animation_set_speed (Animation *animation, u32 speed) {
     if (animation) animation->speed = speed;
 
 }
+
+/*** ANIMATOR ***/
+

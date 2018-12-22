@@ -83,13 +83,13 @@ void sprite_sheet_crop (SpriteSheet *spriteSheet) {
 
         u32 max_sprites_expected = x_num_sprites * y_num_sprites;
 
-        spriteSheet->individualSprites = (Sprite ***) calloc (x_num_sprites, sizeof (Sprite **));
+        spriteSheet->individualSprites = (IndividualSprite ***) calloc (x_num_sprites, sizeof (Sprite **));
         for (u8 i = 0; i < x_num_sprites; i++)
-            spriteSheet->individualSprites[i] = (Sprite **) calloc (y_num_sprites, sizeof (Sprite *));
+            spriteSheet->individualSprites[i] = (IndividualSprite **) calloc (y_num_sprites, sizeof (Sprite *));
 
         for (u8 y = 0; y < y_num_sprites; y++) {
             for (u8 x = 0; x < x_num_sprites; x++) {
-                Sprite *new_sprite = (Sprite *) malloc (sizeof (Sprite));
+                IndividualSprite *new_sprite = (IndividualSprite *) malloc (sizeof (Sprite));
                 new_sprite->col = x;
                 new_sprite->row = y;
                 spriteSheet->individualSprites[x][y] = new_sprite;

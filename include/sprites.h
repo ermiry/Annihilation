@@ -7,9 +7,18 @@
 
 typedef struct Sprite {
 
-    u32 col, row;
+    u32 w, h;
+    SDL_Texture *texture;
+    i32 scaleFactor;
+    SDL_Rect src_rect, dest_rect;
 
 } Sprite;
+
+typedef struct IndividualSprite {
+
+    u32 col, row;
+
+} IndividualSprite;
 
 typedef struct SpriteSheet {
 
@@ -22,7 +31,7 @@ typedef struct SpriteSheet {
 
     i32 scaleFactor;
 
-    Sprite ***individualSprites;
+    IndividualSprite ***individualSprites;
 
 } SpriteSheet;
 

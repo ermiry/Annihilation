@@ -27,7 +27,17 @@ void texture_get_dimensions (SDL_Texture *texture, u32 *w, u32 *h) {
 
 }
 
-// TODO: add texture_draw based on a single sprite
+void texture_draw (SDL_Renderer *renderer, Sprite *sprite, i32 x, i32 y, SDL_RendererFlip flip) {
+
+    if (renderer && sprite) {
+        sprite->dest_rect.x = x;
+        sprite->dest_rect.y = y;
+
+        SDL_RenderCopyEx (renderer, sprite->texture, &sprite->src_rect, &sprite->dest_rect, 
+            0, 0, flip);
+    }
+
+}
 
 void texture_draw_frame (SDL_Renderer *renderer, SpriteSheet *spriteSheet, 
     i32 x, i32 y, u32 col, u32 row, SDL_RendererFlip flip) {

@@ -5,11 +5,14 @@
 
 typedef struct Player {
 
+    u32 goID;
+
     u32 health;
 
 } Player;
 
-extern Player *player_create (void);
+extern Player *player_create_comp (u32 goID);
+extern GameObject *player_init (void);
 extern void player_update (void *data);
 
 #endif

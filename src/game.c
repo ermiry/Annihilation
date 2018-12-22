@@ -6,6 +6,8 @@
 #include "game.h"
 #include "player.h"
 
+#include "animation.h"
+
 /*** GAME OBJECTS ***/
 
 #pragma region GAME OBJECTS
@@ -77,15 +79,31 @@ void game_object_destroy (GameObject *go) {
 
 }
 
+// TODO: implement object pooling for components
 void game_object_add_component (GameObject *go, GameComponent component) {
 
     if (go) {
         switch (component) {
             case POSITION_COMP: break;
-            case GRAPHICS_COMP: break;
+            case GRAPHICS_COMP: {
+                Graphics *graphics = (Graphics *) malloc (sizeof (Graphics));
+                graphics->goID = go->id;
+                graphics->sprite = NULL;
+                graphics->spriteSheet = NULL;
+                graphics->multipleSprites = false;
+                graphics->x_sprite_offset = 0;
+                graphics->y_sprite_offset = 0;
+                go->components[component] = graphics;
+            } break;
 
+            case ANIMATOR_COMP: {
+                Animator *animator = (Animator *) malloc (sizeof (Animator));
+                animator->goID = go->id;
+                animator->currAnimation = NULL;
+                go->components[component] = animator;
+            } break;
             case PLAYER_COMP: 
-                go->components[component] = player_create (); 
+                go->components[component] = player_create_comp (go->id); 
                 go->update = player_update;
                 break;
 
@@ -95,15 +113,27 @@ void game_object_add_component (GameObject *go, GameComponent component) {
 
 }
 
+void *game_object_get_component (GameObject *go, GameComponent component) {
+
+    if (go) return go->components[component];
+
+}
+
 #pragma endregion
 
 /*** GAME MANAGER ***/
 
+extern GameObject *main_player_go;
+
 #pragma region GAME MANAGER
 
-void game_init (void) {
+u8 game_init (void) {
 
     game_object_init ();
+
+    main_player_go = player_init ();
+
+    return 0;
 
 }
 
@@ -111,10 +141,12 @@ void game_init (void) {
 void game_update (void) {
 
     // update every game object
-    for (u32 i = 0; i < max_gos; i++) 
+    for (u32 i = 0; i < curr_max_objs; i++) 
         if (gameObjects[i]->update)
             gameObjects[i]->update (NULL);
 
 }
+
+// FIXME: we need to clean up the game and game objects!!
 
 #pragma endregion
