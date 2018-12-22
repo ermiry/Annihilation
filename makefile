@@ -1,6 +1,6 @@
 TARGET      := annihilation
 
-SDL2 = `sdl2-config --cflags --libs`
+SDL2 = `sdl2-config --cflags --libs` -l SDL2_image
 MATH = -lm 
 
 CC          := gcc
