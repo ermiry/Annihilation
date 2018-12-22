@@ -7,6 +7,7 @@
 
 #include "annihilation.h"
 
+#include "textures.h"
 #include "sprites.h"
 #include "animation.h"
 
@@ -98,14 +99,10 @@ int main (void) {
         int x_offset = player_run_anim->frames[currFrame]->col;
         int y_offset = player_run_anim->frames[currFrame]->row;
 
-        player_sprite_sheet->src_rect.x = player_sprite_sheet->sprite_w * x_offset;
-        player_sprite_sheet->src_rect.y = player_sprite_sheet->sprite_h * y_offset;
-
         // render (renderer);
         {
             SDL_RenderClear (renderer);
-            SDL_RenderCopy (renderer, player_sprite_sheet->texture, 
-                &player_sprite_sheet->src_rect, &player_sprite_sheet->dest_rect);
+            texture_draw_frame (renderer, player_sprite_sheet, 0, 0, x_offset, y_offset, SDL_FLIP_HORIZONTAL);
             SDL_RenderPresent (renderer);
         }
 
