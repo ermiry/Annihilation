@@ -102,7 +102,7 @@ int main (void) {
         // render (renderer);
         {
             SDL_RenderClear (renderer);
-            texture_draw_frame (renderer, player_sprite_sheet, 0, 0, x_offset, y_offset, SDL_FLIP_HORIZONTAL);
+            texture_draw_frame (renderer, player_sprite_sheet, 0, 0, x_offset, y_offset, SDL_FLIP_NONE);
             SDL_RenderPresent (renderer);
         }
 
