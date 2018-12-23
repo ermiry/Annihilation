@@ -56,7 +56,6 @@ void graphics_set_sprite_sheet (Graphics *graphics, const char *filename, SDL_Re
 
 #pragma region GAME OBJECTS
 
-// TODO: implement custom object pooling to search for free spaces
 GameObject **gameObjects;
 u32 max_gos;
 u32 curr_max_objs;
@@ -80,10 +79,26 @@ u8 game_object_init (void) {
 
 }
 
+i32 game_object_get_free_spot (void) {
+
+    for (u32 i = 0; i < curr_max_objs; i++)
+        if (gameObjects[i]->id == -1)
+            return i;
+
+    return -1;
+
+}
+
 // game object constructor
 GameObject *game_object_new (const char *name, const char *tag) {
 
-    GameObject *new_go = (GameObject *) malloc (sizeof (GameObject));
+    GameObject *new_go = NULL;
+
+    // first check if we have a reusable go in the array
+    i32 spot = game_object_get_free_spot ();
+    if (spot >= 0) new_go = gameObjects[spot];
+    else new_go = (GameObject *) malloc (sizeof (GameObject));
+
     if (new_go) {
         if (name) {
             new_go->name = (char *) calloc (strlen (name) + 1, sizeof (char));
@@ -112,8 +127,25 @@ GameObject *game_object_new (const char *name, const char *tag) {
 
 }
 
-// TODO: implement object pooling
-// TODO: mark as free its space in the gos array
+// mark as inactive or reusable the game object
+void game_object_destroy (GameObject *go) {
+
+    if (go) {
+        go->id = -1;
+        go->update = NULL;
+
+        if (go->name) free (go->name);
+        if (go->tag) free (go->tag);
+
+        // individually destroy each component
+        graphics_destroy ((Graphics *) go->components[GRAPHICS_COMP]);
+        animator_destroy ((Animator *) go->components[ANIMATOR_COMP]);
+
+        player_destroy_comp ((Player *) go->components[PLAYER_COMP]);
+    }
+
+}
+
 void game_object_delete (GameObject *go) {
 
     if (go) {
@@ -177,14 +209,16 @@ u8 game_init (void) {
 
 }
 
-// TODO: check for inactive game objects with id of -1;
 void game_update (void) {
 
     // update every game object
-    for (u32 i = 0; i < curr_max_objs; i++) 
-        if (gameObjects[i]->update)
-            gameObjects[i]->update (NULL);
-
+    for (u32 i = 0; i < curr_max_objs; i++) {
+        if (gameObjects[i]->id != -1) {
+            if (gameObjects[i]->update)
+                gameObjects[i]->update (NULL);
+        }
+    }
+    
 }
 
 void game_cleanUp (void) {

@@ -13,7 +13,7 @@
 
 typedef struct GameObject {
 
-    u32 id;
+    i32 id;
 
     char *name;
     char *tag;
