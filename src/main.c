@@ -14,29 +14,13 @@
 
 /*** RENDERING ***/
 
-// TODO: do we want to move rendering to its own file or to the game src?
-
-extern GameObject **gameObjects;
-extern u32 curr_max_objs;
-
 // TODO: render by layers
-void render (SDL_Renderer *renderer) {
+void render (SDL_Renderer *renderer, GameManager *game_manager) {
 
     SDL_RenderClear (renderer);
 
-    Graphics *graphics = NULL;
-    for (u32 i = 0; i < curr_max_objs; i++) {
-        graphics = (Graphics *) game_object_get_component (gameObjects[i], GRAPHICS_COMP);
-        if (graphics) {
-            if (graphics->multipleSprites)
-                texture_draw_frame (renderer, graphics->spriteSheet, 0, 0, 
-                graphics->x_sprite_offset, graphics->y_sprite_offset,
-                SDL_FLIP_NONE);
-            
-            else
-                texture_draw (renderer, graphics->sprite, 0, 0, SDL_FLIP_NONE);
-        }
-    }
+    if (game_manager->currState->render)
+        game_manager->currState->render ();
 
     SDL_RenderPresent (renderer);
 
@@ -109,11 +93,10 @@ int main (void) {
         input_handle (event);
 
         // TODO: create a separte thread
-        // game_update ();
+        if (game_manager->currState->update)
+            game_manager->currState->update ();
 
-        game_manager->currState->update ();
-
-        render (renderer);
+        render (renderer, game_manager);
 
         // limit the FPS
         sleepTime = timePerFrame - (SDL_GetTicks () - frameStart);

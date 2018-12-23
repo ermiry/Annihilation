@@ -8,6 +8,7 @@
 #include "game.h"
 #include "player.h"
 
+#include "textures.h"
 #include "animation.h"
 
 /*** GAME COMPONENTS ***/
@@ -209,6 +210,10 @@ static u8 game_init (void) {
 
 }
 
+static void game_onEnter (void) { game_init (); }
+
+static void game_onExit (void) {}
+
 static void game_update (void) {
 
     // update every game object
@@ -221,8 +226,25 @@ static void game_update (void) {
     
 }
 
-// TODO:
-static void game_render (void) {}
+extern SDL_Renderer *renderer;
+
+static void game_render (void) {
+
+    Graphics *graphics = NULL;
+    for (u32 i = 0; i < curr_max_objs; i++) {
+        graphics = (Graphics *) game_object_get_component (gameObjects[i], GRAPHICS_COMP);
+        if (graphics) {
+            if (graphics->multipleSprites)
+                texture_draw_frame (renderer, graphics->spriteSheet, 0, 0, 
+                graphics->x_sprite_offset, graphics->y_sprite_offset,
+                SDL_FLIP_NONE);
+            
+            else
+                texture_draw (renderer, graphics->sprite, 0, 0, SDL_FLIP_NONE);
+        }
+    }
+
+}
 
 void game_cleanUp (void) {
 
@@ -237,9 +259,6 @@ void game_cleanUp (void) {
 
 GameState *game_state_new (void) {
 
-    // FIXME: MOVE THIS FORM HERE!!!
-    game_init ();
-
     GameState *new_game_state = (GameState *) malloc (sizeof (GameState));
     if (new_game_state) {
         new_game_state->state = IN_GAME;
@@ -247,8 +266,8 @@ GameState *game_state_new (void) {
         new_game_state->update = game_update;
         new_game_state->render = game_render;
 
-        new_game_state->onEnter = NULL;
-        new_game_state->onExit = NULL;
+        new_game_state->onEnter = game_onEnter;
+        new_game_state->onExit = game_onExit;
     }
 
 }
@@ -267,7 +286,11 @@ GameState *game_over_state = NULL;
 GameManager *game_manager_new (GameState *initState) {
 
     GameManager *new_game_manager = (GameManager *) malloc (sizeof (GameManager));
-    if (new_game_manager) new_game_manager->currState = initState;
+    if (new_game_manager) {
+        new_game_manager->currState = initState;
+        if (new_game_manager->currState->onEnter)
+            new_game_manager->currState->onEnter ();
+    } 
 
     return new_game_manager;
 
@@ -275,6 +298,15 @@ GameManager *game_manager_new (GameState *initState) {
 
 State game_state_get_current (void) { return game_manager->currState->state; }
 
-void game_state_change_state (GameState *newState) { game_manager->currState = newState; }
+void game_state_change_state (GameState *newState) { 
+    
+    if (game_manager->currState->onExit)
+        game_manager->currState->onExit ();
+
+    game_manager->currState = newState; 
+    if (game_manager->currState->onEnter)
+        game_manager->currState->onEnter ();
+    
+}
 
 #pragma endregion
