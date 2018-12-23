@@ -10,6 +10,7 @@
 #include "game.h"
 
 #include "textures.h"
+#include "input.h"
 
 /*** RENDERING ***/
 
@@ -75,6 +76,13 @@ bool running = false;
 bool inGame = false;
 bool wasInGame = false;
 
+void quit (void) {
+
+    running = false;
+    inGame = false;
+
+}
+
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 
@@ -97,12 +105,7 @@ int main (void) {
         frameStart = SDL_GetTicks ();
         
         // TODO: create a thread to handle events?
-        while (SDL_PollEvent (&event) != 0) {
-            if (event.type == SDL_QUIT) {
-                running = false;
-                inGame = false;
-            } 
-        }
+        while (SDL_PollEvent (&event) != 0) input_handle (event);
 
         // TODO: create a separte thread
         game_update ();
