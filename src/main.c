@@ -94,7 +94,8 @@ int main (void) {
 
     SDL_Event event;
 
-    game_init ();
+    game_state = game_state_new ();
+    game_manager = game_manager_new (game_state);
 
     u32 timePerFrame = 1000 / FPS_LIMIT;
     u32 frameStart;
@@ -108,7 +109,9 @@ int main (void) {
         input_handle (event);
 
         // TODO: create a separte thread
-        game_update ();
+        // game_update ();
+
+        game_manager->currState->update ();
 
         render (renderer);
 

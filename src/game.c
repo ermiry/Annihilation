@@ -62,7 +62,7 @@ u32 curr_max_objs;
 u32 new_go_id;
 
 // init our game objects array
-u8 game_object_init (void) {
+static u8 game_object_init (void) {
 
     gameObjects = (GameObject **) calloc (DEFAULT_MAX_GOS, sizeof (GameObject *));
     if (gameObjects) {
@@ -79,7 +79,7 @@ u8 game_object_init (void) {
 
 }
 
-i32 game_object_get_free_spot (void) {
+static i32 game_object_get_free_spot (void) {
 
     for (u32 i = 0; i < curr_max_objs; i++)
         if (gameObjects[i]->id == -1)
@@ -193,13 +193,13 @@ void *game_object_get_component (GameObject *go, GameComponent component) {
 
 #pragma endregion
 
-/*** GAME MANAGER ***/
+/*** GAME STATE ***/
 
-extern GameObject *main_player_go;
+#pragma region GAME STATE
 
-#pragma region GAME MANAGER
+GameState *game_state = NULL;
 
-u8 game_init (void) {
+static u8 game_init (void) {
 
     game_object_init ();
 
@@ -209,7 +209,7 @@ u8 game_init (void) {
 
 }
 
-void game_update (void) {
+static void game_update (void) {
 
     // update every game object
     for (u32 i = 0; i < curr_max_objs; i++) {
@@ -221,6 +221,9 @@ void game_update (void) {
     
 }
 
+// TODO:
+static void game_render (void) {}
+
 void game_cleanUp (void) {
 
     // clean up game objects
@@ -231,5 +234,47 @@ void game_cleanUp (void) {
     free (gameObjects);
     
 }
+
+GameState *game_state_new (void) {
+
+    // FIXME: MOVE THIS FORM HERE!!!
+    game_init ();
+
+    GameState *new_game_state = (GameState *) malloc (sizeof (GameState));
+    if (new_game_state) {
+        new_game_state->state = IN_GAME;
+
+        new_game_state->update = game_update;
+        new_game_state->render = game_render;
+
+        new_game_state->onEnter = NULL;
+        new_game_state->onExit = NULL;
+    }
+
+}
+
+#pragma endregion
+
+/*** GAME MANAGER ***/
+
+#pragma region GAME MANAGER
+
+GameManager *game_manager = NULL;
+
+GameState *menu_state = NULL;
+GameState *game_over_state = NULL;
+
+GameManager *game_manager_new (GameState *initState) {
+
+    GameManager *new_game_manager = (GameManager *) malloc (sizeof (GameManager));
+    if (new_game_manager) new_game_manager->currState = initState;
+
+    return new_game_manager;
+
+}
+
+State game_state_get_current (void) { return game_manager->currState->state; }
+
+void game_state_change_state (GameState *newState) { game_manager->currState = newState; }
 
 #pragma endregion
