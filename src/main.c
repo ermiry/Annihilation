@@ -105,7 +105,7 @@ int main (void) {
         frameStart = SDL_GetTicks ();
         
         // TODO: create a thread to handle events?
-        while (SDL_PollEvent (&event) != 0) input_handle (event);
+        input_handle (event);
 
         // TODO: create a separte thread
         game_update ();
