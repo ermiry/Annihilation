@@ -14,6 +14,8 @@ typedef struct Sprite {
 
 } Sprite;
 
+extern void sprite_destroy (Sprite *sprite);
+
 typedef struct IndividualSprite {
 
     u32 col, row;

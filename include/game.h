@@ -66,6 +66,9 @@ typedef struct Graphics {
 
 } Graphics;
 
+extern void graphics_set_sprite_sheet (Graphics *graphics, const char *filename, 
+    SDL_Renderer *renderer);
+
 extern void game_object_add_component (GameObject *go, GameComponent component);
 extern void *game_object_get_component (GameObject *go, GameComponent component);
 
@@ -73,5 +76,6 @@ extern void *game_object_get_component (GameObject *go, GameComponent component)
 
 extern u8 game_init (void);
 extern void game_update (void);
+extern void game_cleanUp (void);
 
 #endif

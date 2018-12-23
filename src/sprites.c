@@ -7,7 +7,18 @@
 #include "sprites.h"
 #include "textures.h"
 
-/*** SPRITES MANAGER ***/
+/*** SPRITES ***/
+
+void sprite_destroy (Sprite *sprite) {
+
+    if (sprite) {
+        if (sprite->texture) SDL_DestroyTexture (sprite->texture);
+        free (sprite);
+    }
+
+}
+
+/*** SPRITES SHEET ***/
 
 void sprite_sheet_destroy (SpriteSheet *spriteSheet) {
 
@@ -23,6 +34,8 @@ void sprite_sheet_destroy (SpriteSheet *spriteSheet) {
         free (spriteSheet->individualSprites);
 
         if (spriteSheet->texture) SDL_DestroyTexture (spriteSheet->texture);
+
+        free (spriteSheet);
     }
 
 }

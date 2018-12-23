@@ -1,12 +1,56 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <SDL2/SDL.h>
+
 #include "annihilation.h"
 
 #include "game.h"
 #include "player.h"
 
 #include "animation.h"
+
+/*** GAME COMPONENTS ***/
+
+#pragma region GAME COMPONENTS
+
+Graphics *graphics_new (u32 objectID) {
+
+    Graphics *new_graphics = (Graphics *) malloc (sizeof (Graphics));
+    if (new_graphics) {
+        new_graphics->goID = objectID;
+        new_graphics->sprite = NULL;
+        new_graphics->spriteSheet = NULL;
+        new_graphics->multipleSprites = false;
+        new_graphics->x_sprite_offset = 0;
+        new_graphics->y_sprite_offset = 0;
+    }
+
+    return new_graphics;
+
+}
+
+void graphics_destroy (Graphics *graphics) {
+
+    if (graphics) {
+        if (graphics->sprite) sprite_destroy (graphics->sprite);
+        if (graphics->spriteSheet) sprite_sheet_destroy (graphics->spriteSheet);
+
+        free (graphics);
+    }
+
+}
+
+void graphics_set_sprite_sheet (Graphics *graphics, const char *filename, SDL_Renderer *renderer) {
+
+    if (graphics && filename) {
+        graphics->spriteSheet = sprite_sheet_load (filename, renderer);
+        graphics->multipleSprites = true;
+    }
+
+}
+
+#pragma endregion
 
 /*** GAME OBJECTS ***/
 
@@ -53,6 +97,8 @@ GameObject *game_object_new (const char *name, const char *tag) {
             strcpy (new_go->tag, tag);
         }
 
+        else new_go->tag = NULL;
+
         for (u8 i = 0; i < COMP_COUNT; i++) new_go->components[i] = NULL;
 
         new_go->id = new_go_id;
@@ -66,11 +112,19 @@ GameObject *game_object_new (const char *name, const char *tag) {
 
 }
 
+// TODO: implement object pooling
 // TODO: mark as free its space in the gos array
-// TODO: destroy each component
-void game_object_destroy (GameObject *go) {
+void game_object_delete (GameObject *go) {
 
     if (go) {
+        go->update = NULL;
+
+        // individually destroy each component
+        graphics_destroy ((Graphics *) go->components[GRAPHICS_COMP]);
+        animator_destroy ((Animator *) go->components[ANIMATOR_COMP]);
+
+        player_destroy_comp ((Player *) go->components[PLAYER_COMP]);
+
         if (go->name) free (go->name);
         if (go->tag) free (go->tag);
 
@@ -85,23 +139,9 @@ void game_object_add_component (GameObject *go, GameComponent component) {
     if (go) {
         switch (component) {
             case POSITION_COMP: break;
-            case GRAPHICS_COMP: {
-                Graphics *graphics = (Graphics *) malloc (sizeof (Graphics));
-                graphics->goID = go->id;
-                graphics->sprite = NULL;
-                graphics->spriteSheet = NULL;
-                graphics->multipleSprites = false;
-                graphics->x_sprite_offset = 0;
-                graphics->y_sprite_offset = 0;
-                go->components[component] = graphics;
-            } break;
+            case GRAPHICS_COMP: go->components[component] = graphics_new (go->id); break;
 
-            case ANIMATOR_COMP: {
-                Animator *animator = (Animator *) malloc (sizeof (Animator));
-                animator->goID = go->id;
-                animator->currAnimation = NULL;
-                go->components[component] = animator;
-            } break;
+            case ANIMATOR_COMP: go->components[component] = animator_new (go->id); break;
             case PLAYER_COMP: 
                 go->components[component] = player_create_comp (go->id); 
                 go->update = player_update;
@@ -137,7 +177,7 @@ u8 game_init (void) {
 
 }
 
-// TODO: check of inactive game objects with id of -1;
+// TODO: check for inactive game objects with id of -1;
 void game_update (void) {
 
     // update every game object
@@ -147,6 +187,15 @@ void game_update (void) {
 
 }
 
-// FIXME: we need to clean up the game and game objects!!
+void game_cleanUp (void) {
+
+    // clean up game objects
+    for (u32 i = 0; i < curr_max_objs; i++) 
+        if (gameObjects[i])
+            game_object_delete (gameObjects[i]);
+
+    free (gameObjects);
+    
+}
 
 #pragma endregion

@@ -47,3 +47,38 @@ void animation_set_speed (Animation *animation, u32 speed) {
 
 /*** ANIMATOR ***/
 
+Animator *animator_new (u32 objectID) {
+
+    Animator *new_animator = (Animator *) malloc (sizeof (Animator));
+    if (new_animator) {
+        new_animator->goID = objectID;
+        new_animator->currAnimation = NULL;
+        new_animator->n_animations = 0;
+        new_animator->animations = NULL;
+    }
+    
+    return new_animator;
+
+}
+
+void animator_destroy (Animator *animator) {
+
+    if (animator) {
+        if (animator->animations) {
+            for (u8 i = 0; i < animator->n_animations; i++)
+                if (animator->animations[i])
+                    animation_destroy (animator->animations[i]);
+
+            free (animator->animations);
+        }
+
+        free (animator);
+    }
+
+}
+
+void animator_set_current_animation (Animator *animator, Animation *animation) {
+
+    if (animator && animation) animator->currAnimation = animation;
+
+}

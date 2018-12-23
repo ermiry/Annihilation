@@ -45,7 +45,7 @@ void render (SDL_Renderer *renderer) {
 
 void sdl_setUp (SDL_Window **window, SDL_Renderer **renderer) {
 
-    SDL_Init (SDL_INIT_TIMER | SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+    SDL_Init (SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS);
     *window = SDL_CreateWindow ("Annihilation",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
 
@@ -59,6 +59,8 @@ void sdl_setUp (SDL_Window **window, SDL_Renderer **renderer) {
 /*** CLEAN UP ***/
 
 void cleanUp (SDL_Window *window, SDL_Renderer *renderer) {
+
+    game_cleanUp ();
 
     SDL_DestroyRenderer (renderer);
     SDL_DestroyWindow (window);
