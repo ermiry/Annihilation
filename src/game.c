@@ -15,7 +15,22 @@
 
 #pragma region GAME COMPONENTS
 
-Graphics *graphics_new (u32 objectID) {
+static Transform *transform_new (u32 objectID) {
+
+    Transform *new_transform = (Transform *) malloc (sizeof (Transform));
+    if (new_transform) {
+        new_transform->goID = objectID;
+        new_transform->position.x = 0;
+        new_transform->position.y = 0;
+    }
+
+    return new_transform;
+
+}
+
+static void transform_destroy (Transform *transform) { if (transform) free (transform); }
+
+static Graphics *graphics_new (u32 objectID) {
 
     Graphics *new_graphics = (Graphics *) malloc (sizeof (Graphics));
     if (new_graphics) {
@@ -31,7 +46,7 @@ Graphics *graphics_new (u32 objectID) {
 
 }
 
-void graphics_destroy (Graphics *graphics) {
+static void graphics_destroy (Graphics *graphics) {
 
     if (graphics) {
         if (graphics->sprite) sprite_destroy (graphics->sprite);
@@ -129,7 +144,7 @@ GameObject *game_object_new (const char *name, const char *tag) {
 }
 
 // mark as inactive or reusable the game object
-void game_object_destroy (GameObject *go) {
+static void game_object_destroy (GameObject *go) {
 
     if (go) {
         go->id = -1;
@@ -139,6 +154,7 @@ void game_object_destroy (GameObject *go) {
         if (go->tag) free (go->tag);
 
         // individually destroy each component
+        transform_destroy ((Transform *) go->components[TRANSFORM_COMP]);
         graphics_destroy ((Graphics *) go->components[GRAPHICS_COMP]);
         animator_destroy ((Animator *) go->components[ANIMATOR_COMP]);
 
@@ -147,12 +163,13 @@ void game_object_destroy (GameObject *go) {
 
 }
 
-void game_object_delete (GameObject *go) {
+static void game_object_delete (GameObject *go) {
 
     if (go) {
         go->update = NULL;
 
         // individually destroy each component
+        transform_destroy ((Transform *) go->components[TRANSFORM_COMP]);
         graphics_destroy ((Graphics *) go->components[GRAPHICS_COMP]);
         animator_destroy ((Animator *) go->components[ANIMATOR_COMP]);
 
@@ -171,7 +188,7 @@ void game_object_add_component (GameObject *go, GameComponent component) {
 
     if (go) {
         switch (component) {
-            case POSITION_COMP: break;
+            case TRANSFORM_COMP: go->components[component] = transform_new (go->id); break;
             case GRAPHICS_COMP: go->components[component] = graphics_new (go->id); break;
 
             case ANIMATOR_COMP: go->components[component] = animator_new (go->id); break;
@@ -230,17 +247,22 @@ extern SDL_Renderer *renderer;
 
 static void game_render (void) {
 
+    Transform *transform = NULL;
     Graphics *graphics = NULL;
     for (u32 i = 0; i < curr_max_objs; i++) {
+        transform = (Transform *) game_object_get_component (gameObjects[i], TRANSFORM_COMP);
         graphics = (Graphics *) game_object_get_component (gameObjects[i], GRAPHICS_COMP);
-        if (graphics) {
+        if (transform && graphics) {
             if (graphics->multipleSprites)
-                texture_draw_frame (renderer, graphics->spriteSheet, 0, 0, 
+                texture_draw_frame (renderer, graphics->spriteSheet, 
+                transform->position.x, transform->position.y, 
                 graphics->x_sprite_offset, graphics->y_sprite_offset,
                 SDL_FLIP_NONE);
             
             else
-                texture_draw (renderer, graphics->sprite, 0, 0, SDL_FLIP_NONE);
+                texture_draw (renderer, graphics->sprite, 
+                transform->position.x, transform->position.y, 
+                SDL_FLIP_NONE);
         }
     }
 

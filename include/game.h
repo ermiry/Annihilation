@@ -6,6 +6,7 @@
 #include "annihilation.h"
 
 #include "sprites.h"
+#include "vector2d.h"
 
 #define DEFAULT_MAX_GOS     10
 
@@ -29,7 +30,7 @@ extern GameObject *game_object_new (const char *name, const char *tag);
 
 typedef enum GameComponent {
 
-    POSITION_COMP = 0,
+    TRANSFORM_COMP = 0,
     GRAPHICS_COMP,
     ANIMATOR_COMP,
 
@@ -37,12 +38,12 @@ typedef enum GameComponent {
 
 } GameComponent;
 
-typedef struct Position {
+typedef struct Transform {
 
     u32 goID;
-    u32 x, y;  
+    Vector2D position;
 
-} Position;
+} Transform;
 
 #define UNSET_LAYER     0
 #define GROUND_LAYER    1

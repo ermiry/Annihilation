@@ -8,16 +8,16 @@ typedef struct Vector2D {
 } Vector2D;
 
 extern Vector2D vector_add (Vector2D a, Vector2D b);
-extern void vector_add_equal (Vector2D a, Vector2D b);
+extern void vector_add_equal (Vector2D *a, Vector2D b);
 
 extern Vector2D vector_subtract (Vector2D a, Vector2D b);
-extern void vector_substract_equal (Vector2D a, Vector2D b);
+extern void vector_substract_equal (Vector2D *a, Vector2D b);
 
 extern Vector2D vector_multiply (Vector2D v, float scalar);
-extern void vector_multiply_equal (Vector2D v, float scalar);
+extern void vector_multiply_equal (Vector2D *v, float scalar);
 
 extern Vector2D vector_divide (Vector2D v, float divisor);
-extern void vector_divide_equal (Vector2D v, float divisor);
+extern void vector_divide_equal (Vector2D *v, float divisor);
 
 extern Vector2D vector_negate (Vector2D v);
 extern Vector2D vector_project (Vector2D project, Vector2D onto);

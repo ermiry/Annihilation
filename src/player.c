@@ -28,12 +28,13 @@ GameObject *player_init (void) {
 
     GameObject *new_player_go = game_object_new ("player", NULL);
     if (new_player_go) {
+        game_object_add_component (new_player_go, TRANSFORM_COMP);
         game_object_add_component (new_player_go, GRAPHICS_COMP);
         game_object_add_component (new_player_go, ANIMATOR_COMP);
         game_object_add_component (new_player_go, PLAYER_COMP);
 
         Graphics *player_graphics = game_object_get_component (new_player_go, GRAPHICS_COMP);
-        graphics_set_sprite_sheet (player_graphics, "./assets/adventurer-sprites.png", renderer);
+        graphics_set_sprite_sheet (player_graphics, "./assets/adventurer-sheet.png", renderer);
         sprite_sheet_set_sprite_size (player_graphics->spriteSheet, 50, 37);
         sprite_sheet_set_scale_factor (player_graphics->spriteSheet, 6);
         sprite_sheet_crop (player_graphics->spriteSheet);
@@ -58,12 +59,18 @@ GameObject *player_init (void) {
 
 }
 
+// TODO: add private variables to my components
 void player_update (void *data) {
+
+    // update player physics
+    Transform *transform = (Transform *) game_object_get_component (main_player_go, TRANSFORM_COMP);
+    Vector2D velocity = { .x = 8, .y = 0 };
+    vector_add_equal (&transform->position, velocity);
 
     // update player animation
     Graphics *graphics = (Graphics *) game_object_get_component (main_player_go, GRAPHICS_COMP);
     Animator *animator = (Animator *) game_object_get_component (main_player_go, ANIMATOR_COMP);
-    if (animator) {
+    if (graphics && animator) {
         i32 currFrame = (int) (((SDL_GetTicks () / animator->currAnimation->speed) % 
             animator->currAnimation->n_frames));    
 

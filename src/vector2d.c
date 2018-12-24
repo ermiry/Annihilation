@@ -9,7 +9,7 @@ Vector2D vector_add_vector (Vector2D a, Vector2D b) {
 
 }
 
-void vector_add_equal (Vector2D a, Vector2D b) { a.x += b.x; a.y += b.y; }
+void vector_add_equal (Vector2D *a, Vector2D b) { a->x += b.x; a->y += b.y; }
 
 Vector2D vector_subtract (Vector2D a, Vector2D b) {
 
@@ -18,7 +18,7 @@ Vector2D vector_subtract (Vector2D a, Vector2D b) {
 
 }
 
-void vector_subtract_equal (Vector2D a, Vector2D b) { a.x -= b.x; a.y -= b.y; }
+void vector_subtract_equal (Vector2D *a, Vector2D b) { a->x -= b.x; a->y -= b.y; }
 
 Vector2D vector_negate (Vector2D v) {
 
@@ -33,7 +33,7 @@ Vector2D vector_multiply (Vector2D v, float scalar) {
     return r;
 }
 
-void vector_multiply_equal (Vector2D v, float scalar) { v.x *= scalar; v.y *= scalar; }
+void vector_multiply_equal (Vector2D *v, float scalar) { v->x *= scalar; v->y *= scalar; }
 
 Vector2D vector_divide (Vector2D v, float divisor) {
 
@@ -46,11 +46,11 @@ Vector2D vector_divide (Vector2D v, float divisor) {
     return r;
 }
 
-void vector_divide_equal (Vector2D v, float divisor) { 
+void vector_divide_equal (Vector2D *v, float divisor) { 
     
     if (divisor) {
-        v.x /= divisor; 
-        v.y /= divisor;
+        v->x /= divisor; 
+        v->y /= divisor;
     }  
     
 }
