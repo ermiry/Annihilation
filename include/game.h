@@ -51,6 +51,14 @@ typedef struct Transform {
 #define MID_LAYER       3
 #define TOP_LAYER       4
 
+typedef enum Flip {
+
+    NO_FLIP = 0x00000000,
+    FLIP_HORIZONTAL = 0x00000001,
+    FLIP_VERTICAL = 0x00000002
+
+} Flip;
+
 typedef struct Graphics {
 
     u32 goID;
@@ -60,8 +68,8 @@ typedef struct Graphics {
 
     u32 x_sprite_offset, y_sprite_offset;
     bool multipleSprites;
-    // SDL_Rect src_rect, dest_rect;
     u8 layer; 
+    Flip flip;
     bool hasBeenSeen;
     bool visibleOutsideFov;
 

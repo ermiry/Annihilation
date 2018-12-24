@@ -40,6 +40,8 @@ static Graphics *graphics_new (u32 objectID) {
         new_graphics->multipleSprites = false;
         new_graphics->x_sprite_offset = 0;
         new_graphics->y_sprite_offset = 0;
+        new_graphics->layer = UNSET_LAYER;
+        new_graphics->flip = NO_FLIP;
     }
 
     return new_graphics;
@@ -257,12 +259,12 @@ static void game_render (void) {
                 texture_draw_frame (renderer, graphics->spriteSheet, 
                 transform->position.x, transform->position.y, 
                 graphics->x_sprite_offset, graphics->y_sprite_offset,
-                SDL_FLIP_NONE);
+                graphics->flip);
             
             else
                 texture_draw (renderer, graphics->sprite, 
                 transform->position.x, transform->position.y, 
-                SDL_FLIP_NONE);
+                graphics->flip);
         }
     }
 

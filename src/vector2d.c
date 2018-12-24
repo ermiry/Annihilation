@@ -37,7 +37,7 @@ void vector_multiply_equal (Vector2D *v, float scalar) { v->x *= scalar; v->y *=
 
 Vector2D vector_divide (Vector2D v, float divisor) {
 
-    Vector2D r = {0, 0};
+    Vector2D r = { 0, 0 };
     if (divisor != 0) 
     {
         r.x = v.x / divisor;
