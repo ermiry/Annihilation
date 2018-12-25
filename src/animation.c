@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
+#include <SDL2/SDL.h>
+
 #include "annihilation.h"
 
 #include "sprites.h"
@@ -53,6 +55,7 @@ Animator *animator_new (u32 objectID) {
     if (new_animator) {
         new_animator->goID = objectID;
         new_animator->currAnimation = NULL;
+        new_animator->currFrame = 0;
         new_animator->n_animations = 0;
         new_animator->animations = NULL;
     }
@@ -79,6 +82,17 @@ void animator_destroy (Animator *animator) {
 
 void animator_set_current_animation (Animator *animator, Animation *animation) {
 
-    if (animator && animation) animator->currAnimation = animation;
+    if (animator && animation) 
+        if (!animator->playing) animator->currAnimation = animation; 
+
+}
+
+void animator_play_animation (Animator *animator, Animation *animation) {
+
+    if (animator && animation) {
+        animator_set_current_animation (animator, animation);
+        animator->playing = true;
+        animator->currFrame = 0;
+    } 
 
 }

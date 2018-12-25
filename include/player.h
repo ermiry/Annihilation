@@ -3,10 +3,19 @@
 
 #include "annihilation.h"
 
+typedef enum PlayerState {
+
+    PLAYER_IDLE = 0,
+    PLAYER_MOVING,
+    PLAYER_ATTACK,
+
+} PlayerState;
+
 typedef struct Player {
 
     u32 goID;
 
+    PlayerState currState;
     u32 health;
 
 } Player;

@@ -10,7 +10,7 @@
 
 #define DEFAULT_MAX_GOS     10
 
-#define COMP_COUNT          3
+#define COMP_COUNT          4
 
 typedef struct GameObject {
 
