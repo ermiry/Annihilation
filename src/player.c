@@ -35,7 +35,7 @@ Player *player_create_comp (u32 goID) {
 
 }
 
-// FIXME: wehre do we want to put this?
+// FIXME: where do we want to put this?
 extern SDL_Renderer *renderer;
 
 GameObject *player_init (void) {
@@ -59,6 +59,7 @@ GameObject *player_init (void) {
         sprite_sheet_crop (my_graphics->spriteSheet);
 
         // set up animations
+        // player idel without sword
         // player_idle_anim = animation_create (4,
         //     my_graphics->spriteSheet->individualSprites[0][0], my_graphics->spriteSheet->individualSprites[1][0], 
         //     my_graphics->spriteSheet->individualSprites[2][0], my_graphics->spriteSheet->individualSprites[3][0]);
