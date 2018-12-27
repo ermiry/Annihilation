@@ -3,6 +3,8 @@
 
 #include "annihilation.h"
 
+#include "entity.h"
+
 typedef enum PlayerState {
 
     PLAYER_IDLE = 0,
@@ -16,7 +18,7 @@ typedef struct Player {
     u32 goID;
 
     PlayerState currState;
-    u32 health;
+    LivingEntity entity;
 
 } Player;
 

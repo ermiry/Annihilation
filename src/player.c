@@ -28,7 +28,6 @@ Player *player_create_comp (u32 goID) {
         new_player->goID = goID;
 
         new_player->currState = PLAYER_IDLE;
-        new_player->health = 0;
     }
 
     return new_player;
