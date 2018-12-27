@@ -9,22 +9,9 @@
 
 #include "game.h"
 
+#include "engine/renderer.h"
 #include "engine/textures.h"
 #include "engine/input.h"
-
-/*** RENDERING ***/
-
-// TODO: render by layers
-void render (SDL_Renderer *renderer, GameManager *game_manager) {
-
-    SDL_RenderClear (renderer);
-
-    if (game_manager->currState->render)
-        game_manager->currState->render ();
-
-    SDL_RenderPresent (renderer);
-
-}
 
 /*** SET UP ***/
 
@@ -68,7 +55,6 @@ void quit (void) {
 }
 
 SDL_Window *window = NULL;
-SDL_Renderer *renderer = NULL;
 
 int main (void) {
 
@@ -96,7 +82,7 @@ int main (void) {
         if (game_manager->currState->update)
             game_manager->currState->update ();
 
-        render (renderer, game_manager);
+        render ();
 
         // limit the FPS
         sleepTime = timePerFrame - (SDL_GetTicks () - frameStart);

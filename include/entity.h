@@ -3,6 +3,31 @@
 
 #include "annihilation.h"
 
+typedef enum Genre {
+
+    MALE = 1,
+    FEMALE = 2,
+    OTHER = 3
+
+} Genre;
+
+typedef enum CharRace {
+
+    HUMAN = 1,
+
+} CharRace;
+
+typedef enum CharClass {
+
+    WARRIOR = 1,
+    PALADIN,
+    ROGUE,
+    PRIEST,
+    DEATH_KNIGHT,
+    MAGE
+
+} CharClass;
+
 typedef struct Defense {
 
     u32 armor;      // based on level, class, and equipment
@@ -25,13 +50,21 @@ typedef struct Attack {
 typedef struct LivingEntity {
 
     // base stats
+    Genre genre;
+    CharRace race;
+    CharClass cClass;
     u32 maxHealth;
     u32 currHealth;
-    
+    char *name;
+
     u32 strength;
     u32 stamina;
 
     u32 level;
+
+    // combat stats
+    Attack attack;
+    Defense defense;
 
 } LivingEntity;
 

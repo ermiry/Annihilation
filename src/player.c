@@ -7,6 +7,7 @@
 #include "engine/sprites.h"
 #include "engine/animation.h"
 
+// TODO: we need a better way to reference the players we know about
 GameObject *main_player_go = NULL;
 
 static Player *mainPlayer = NULL;
@@ -28,6 +29,8 @@ Player *player_create_comp (u32 goID) {
         new_player->goID = goID;
 
         new_player->currState = PLAYER_IDLE;
+        new_player->profile = NULL;
+        new_player->character = NULL;
     }
 
     return new_player;
@@ -148,6 +151,7 @@ void player_update (void *data) {
 
 }
 
+// FIXME: correctly clean up the player component
 void player_destroy_comp (Player *player) {
 
     if (player) {
