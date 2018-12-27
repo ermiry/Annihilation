@@ -9,8 +9,8 @@
 
 #include "game.h"
 
-#include "textures.h"
-#include "input.h"
+#include "engine/textures.h"
+#include "engine/input.h"
 
 /*** RENDERING ***/
 

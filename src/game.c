@@ -8,8 +8,8 @@
 #include "game.h"
 #include "player.h"
 
-#include "textures.h"
-#include "animation.h"
+#include "engine/textures.h"
+#include "engine/animation.h"
 
 /*** GAME COMPONENTS ***/
 

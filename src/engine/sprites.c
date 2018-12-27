@@ -4,8 +4,8 @@
 
 #include "annihilation.h"
 
-#include "sprites.h"
-#include "textures.h"
+#include "engine/sprites.h"
+#include "engine/textures.h"
 
 /*** SPRITES ***/
 

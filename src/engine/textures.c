@@ -3,7 +3,7 @@
 
 #include "annihilation.h"
 
-#include "sprites.h"
+#include "engine/sprites.h"
 
 /*** TEXTURE MANAGER ***/
 

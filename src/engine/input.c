@@ -4,7 +4,7 @@
 
 #include "annihilation.h"
 
-#include "input.h"
+#include "engine/input.h"
 
 extern void quit (void);
 

@@ -5,8 +5,8 @@
 
 #include "annihilation.h"
 
-#include "sprites.h"
-#include "animation.h"
+#include "engine/sprites.h"
+#include "engine/animation.h"
 
 /*** ANIMATION ***/
 

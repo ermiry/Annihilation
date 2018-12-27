@@ -5,7 +5,7 @@
 
 #include "annihilation.h"
 
-#include "sprites.h"
+#include "engine/sprites.h"
 #include "vector2d.h"
 
 #define DEFAULT_MAX_GOS     10
