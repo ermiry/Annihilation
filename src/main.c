@@ -3,45 +3,13 @@
 #include <time.h>
 
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
 
 #include "annihilation.h"
 
 #include "game.h"
 
 #include "engine/renderer.h"
-#include "engine/textures.h"
 #include "engine/input.h"
-
-/*** SET UP ***/
-
-void sdl_setUp (SDL_Window **window, SDL_Renderer **renderer) {
-
-    SDL_Init (SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-    *window = SDL_CreateWindow ("Annihilation",
-        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
-
-    *renderer = SDL_CreateRenderer (*window, 0, SDL_RENDERER_SOFTWARE | SDL_RENDERER_ACCELERATED);
-    SDL_SetRenderDrawColor (*renderer, 0, 0, 0, 255);
-    SDL_SetHint (SDL_HINT_RENDER_SCALE_QUALITY, "0");
-    SDL_RenderSetLogicalSize (*renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-}
-
-/*** CLEAN UP ***/
-
-void cleanUp (SDL_Window *window, SDL_Renderer *renderer) {
-
-    game_cleanUp ();
-
-    SDL_DestroyRenderer (renderer);
-    SDL_DestroyWindow (window);
-
-    SDL_Quit ();
-
-}
-
-/*** MAIN THREAD ***/
 
 bool running = false;
 bool inGame = false;
@@ -54,13 +22,12 @@ void quit (void) {
 
 }
 
-SDL_Window *window = NULL;
-
 int main (void) {
 
     srand ((unsigned) time (NULL));
 
-    sdl_setUp (&window, &renderer);
+    SDL_Init (SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_EVENTS);
+    video_init_main ("Annihilation");
 
     SDL_Event event;
 
@@ -89,7 +56,10 @@ int main (void) {
         if (sleepTime > 0) SDL_Delay (sleepTime);
     }
 
-    cleanUp (window, renderer);
+    // FIXME: i dont want this here!
+    game_cleanUp ();
+    video_destroy_main ();
+    SDL_Quit ();
 
     return 0;
 
