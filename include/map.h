@@ -26,4 +26,17 @@ typedef struct Room {
 
 } Room;
 
+typedef struct Cave {
+
+    u32 width, heigth;
+    bool useRandomSeed;
+    u32 seed;
+    u32 fillPercent;
+    u8 **map;
+
+} Cave;
+
+extern Cave *cave_generate (u32 width, u32 heigth, u32 seed, u32 fillPercent);
+extern void cave_destroy (Cave *cave);
+
 #endif

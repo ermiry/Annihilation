@@ -246,8 +246,6 @@ static void game_update (void) {
     
 }
 
-extern SDL_Renderer *renderer;
-
 static void game_render (void) {
 
     Transform *transform = NULL;
