@@ -8,6 +8,7 @@
 #include "game.h"
 #include "player.h"
 
+#include "engine/renderer.h"
 #include "engine/textures.h"
 #include "engine/animation.h"
 
@@ -256,13 +257,13 @@ static void game_render (void) {
         graphics = (Graphics *) game_object_get_component (gameObjects[i], GRAPHICS_COMP);
         if (transform && graphics) {
             if (graphics->multipleSprites)
-                texture_draw_frame (renderer, graphics->spriteSheet, 
+                texture_draw_frame (main_renderer, graphics->spriteSheet, 
                 transform->position.x, transform->position.y, 
                 graphics->x_sprite_offset, graphics->y_sprite_offset,
                 graphics->flip);
             
             else
-                texture_draw (renderer, graphics->sprite, 
+                texture_draw (main_renderer, graphics->sprite, 
                 transform->position.x, transform->position.y, 
                 graphics->flip);
         }

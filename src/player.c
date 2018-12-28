@@ -3,6 +3,7 @@
 #include "game.h"
 #include "player.h"
 
+#include "engine/renderer.h"
 #include "engine/input.h"
 #include "engine/sprites.h"
 #include "engine/animation.h"
@@ -22,6 +23,30 @@ static Animation *player_attack_anim = NULL;
 
 static u8 moveSpeed = 8;
 
+#pragma region CHARACTER
+
+// TODO: do we want this only when creating a new character or also when we are 
+// loading a saved profile?
+Character *character_new (void) {
+
+    Character *new_character = (Character *) malloc (sizeof (Character));
+    if (new_character) {
+        new_character->entity = entity_new ();
+        // TODO: money
+    }
+
+    return new_character;
+
+}
+
+#pragma endregion
+
+#pragma region PLAYER PROFILE
+
+#pragma endregion
+
+#pragma region PLAYER COMPONENT
+
 Player *player_create_comp (u32 goID) {
 
     Player *new_player = (Player *) malloc (sizeof (Player));
@@ -36,9 +61,6 @@ Player *player_create_comp (u32 goID) {
     return new_player;
 
 }
-
-// FIXME: where do we want to put this?
-extern SDL_Renderer *renderer;
 
 GameObject *player_init (void) {
 
@@ -55,7 +77,7 @@ GameObject *player_init (void) {
         my_trans = (Transform *) game_object_get_component (new_player_go, TRANSFORM_COMP);
 
         my_graphics = (Graphics *) game_object_get_component (new_player_go, GRAPHICS_COMP);
-        graphics_set_sprite_sheet (my_graphics, "./assets/artwork/adventurer-sheet.png", renderer);
+        graphics_set_sprite_sheet (my_graphics, "./assets/artwork/adventurer-sheet.png", main_renderer);
         sprite_sheet_set_sprite_size (my_graphics->spriteSheet, 50, 37);
         sprite_sheet_set_scale_factor (my_graphics->spriteSheet, 6);
         sprite_sheet_crop (my_graphics->spriteSheet);
@@ -159,3 +181,5 @@ void player_destroy_comp (Player *player) {
     }
 
 }
+
+#pragma endregion

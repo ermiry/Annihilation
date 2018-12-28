@@ -11,11 +11,15 @@ typedef enum Genre {
 
 } Genre;
 
+extern char *entity_get_genre_name (Genre);
+
 typedef enum CharRace {
 
     HUMAN = 1,
 
 } CharRace;
+
+extern char *entity_get_race_name (CharRace);
 
 typedef enum CharClass {
 
@@ -27,6 +31,8 @@ typedef enum CharClass {
     MAGE
 
 } CharClass;
+
+extern char *entity_get_class_name (CharClass);
 
 typedef struct Defense {
 
@@ -67,5 +73,8 @@ typedef struct LivingEntity {
     Defense defense;
 
 } LivingEntity;
+
+extern LivingEntity *entity_new (void);
+extern void entity_destroy (LivingEntity *entity);
 
 #endif
