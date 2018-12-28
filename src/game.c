@@ -6,6 +6,7 @@
 #include "annihilation.h"
 
 #include "game.h"
+#include "map.h"
 #include "player.h"
 
 #include "engine/renderer.h"
@@ -60,10 +61,21 @@ static void graphics_destroy (Graphics *graphics) {
 
 }
 
-void graphics_set_sprite_sheet (Graphics *graphics, const char *filename, SDL_Renderer *renderer) {
+void graphics_set_sprite (Graphics *graphics, const char *filename) {
 
     if (graphics && filename) {
-        graphics->spriteSheet = sprite_sheet_load (filename, renderer);
+        graphics->sprite = sprite_load (filename, main_renderer);
+        graphics->spriteSheet = NULL;
+        graphics->multipleSprites = false;
+    }
+
+}
+
+void graphics_set_sprite_sheet (Graphics *graphics, const char *filename) {
+
+    if (graphics && filename) {
+        graphics->sprite = NULL;
+        graphics->spriteSheet = sprite_sheet_load (filename, main_renderer);
         graphics->multipleSprites = true;
     }
 
@@ -134,6 +146,8 @@ GameObject *game_object_new (const char *name, const char *tag) {
         else new_go->tag = NULL;
 
         for (u8 i = 0; i < COMP_COUNT; i++) new_go->components[i] = NULL;
+
+        new_go->update = NULL;
 
         new_go->id = new_go_id;
         new_go_id++;
@@ -220,9 +234,15 @@ void *game_object_get_component (GameObject *go, GameComponent component) {
 
 GameState *game_state = NULL;
 
+// TODO: this is only for testing
+Map *game_map = NULL;
+
 static u8 game_init (void) {
 
     game_object_init ();
+
+    game_map = map_create (10, 10);
+    game_map->cave = cave_generate (game_map, game_map->width, game_map->heigth, 10, 10);
 
     main_player_go = player_init ();
 

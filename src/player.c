@@ -3,7 +3,6 @@
 #include "game.h"
 #include "player.h"
 
-#include "engine/renderer.h"
 #include "engine/input.h"
 #include "engine/sprites.h"
 #include "engine/animation.h"
@@ -77,7 +76,7 @@ GameObject *player_init (void) {
         my_trans = (Transform *) game_object_get_component (new_player_go, TRANSFORM_COMP);
 
         my_graphics = (Graphics *) game_object_get_component (new_player_go, GRAPHICS_COMP);
-        graphics_set_sprite_sheet (my_graphics, "./assets/artwork/adventurer-sheet.png", main_renderer);
+        graphics_set_sprite_sheet (my_graphics, "./assets/artwork/adventurer-sheet.png");
         sprite_sheet_set_sprite_size (my_graphics->spriteSheet, 50, 37);
         sprite_sheet_set_scale_factor (my_graphics->spriteSheet, 6);
         sprite_sheet_crop (my_graphics->spriteSheet);

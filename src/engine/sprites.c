@@ -9,6 +9,30 @@
 
 /*** SPRITES ***/
 
+Sprite *sprite_load (const char *filename, SDL_Renderer *renderer) {
+
+    if (filename && renderer) {
+        Sprite *new_sprite = (Sprite *) malloc (sizeof (Sprite));
+        if (new_sprite) {
+            new_sprite->texture = texture_load (filename, renderer);
+            texture_get_dimensions (new_sprite->texture, &new_sprite->w, &new_sprite->h) ;
+
+            // dimensions
+            new_sprite->src_rect.w = new_sprite->dest_rect.w = new_sprite->w;
+            new_sprite->src_rect.h = new_sprite->dest_rect.h = new_sprite->h;
+
+            // positions
+            new_sprite->src_rect.x = new_sprite->dest_rect.x = 0;
+            new_sprite->src_rect.y = new_sprite->dest_rect.y = 0;
+
+            return new_sprite;
+        }
+    }
+
+    return NULL;
+
+}
+
 void sprite_destroy (Sprite *sprite) {
 
     if (sprite) {

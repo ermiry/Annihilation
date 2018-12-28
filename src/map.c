@@ -1,5 +1,6 @@
 #include <stdlib.h>
 
+#include "game.h"
 #include "map.h"
 
 #include "utils/myUtils.h"
@@ -64,17 +65,17 @@ static void cave_random_fill_map (Cave *cave) {
 
 }
 
-static bool cave_is_in_map_range (Cave *cave, u32 x, u32 y) {
+static bool cave_is_in_map_range (Cave *cave, i32 x, i32 y) {
 
     return (x >= 0 && x < cave->width && y >= 0 && y < cave->heigth);
 
 }
 
-static u8 cave_get_surrounding_wall_count (Cave *cave, u32 gridX, u32 gridY) {
+static u8 cave_get_surrounding_wall_count (Cave *cave, i32 gridX, i32 gridY) {
 
     u8 wallCount = 0;
-    for (u32 neighbourX = gridX - 1; neighbourX <= gridX + 1; neighbourX++) {
-        for (u32 neighbourY = gridY - 1; neighbourY <= gridY + 1; neighbourY++) {
+    for (i32 neighbourX = gridX - 1; neighbourX <= gridX + 1; neighbourX++) {
+        for (i32 neighbourY = gridY - 1; neighbourY <= gridY + 1; neighbourY++) {
             if (cave_is_in_map_range (cave, neighbourX, neighbourY)) {
                 if (neighbourX != gridX || neighbourY != gridY)
                     wallCount += cave->map[neighbourX][neighbourY];
@@ -91,8 +92,8 @@ static u8 cave_get_surrounding_wall_count (Cave *cave, u32 gridX, u32 gridY) {
 
 static void cave_smooth_map (Cave *cave) {
 
-    for (u32 x = 0; x < cave->width; x++){
-        for (u32 y = 0; y < cave->heigth; y++) {
+    for (u32 x = 0; x < cave->width - 1; x++){
+        for (u32 y = 0; y < cave->heigth - 1; y++) {
             u8 neighbourWallTiles = cave_get_surrounding_wall_count (cave, x, y);
 
             if (neighbourWallTiles > 4) cave->map[x][y] = 1;
@@ -102,7 +103,35 @@ static void cave_smooth_map (Cave *cave) {
 
 }
 
-Cave *cave_generate (u32 width, u32 heigth, u32 seed, u32 fillPercent) {
+// TODO: create a parent gameobejct and names based on position
+// create a game object for each cave
+static void cave_draw (Map *map, Cave *cave) {
+
+    GameObject *go = NULL;
+    Transform *transform = NULL;
+    Graphics *graphics = NULL;
+    for (u32 y = 0; y < cave->heigth; y++) {
+        for (u32 x = 0; x < cave->width; x++) {
+            if (cave->map[x][y] == 1) {
+                go = game_object_new (NULL, NULL);
+                game_object_add_component (go, TRANSFORM_COMP);
+                game_object_add_component (go, GRAPHICS_COMP);
+
+                graphics = game_object_get_component (go, GRAPHICS_COMP);
+                graphics_set_sprite (graphics, "./assets/artwork/mapTile_087.png");
+
+                transform = game_object_get_component (go, TRANSFORM_COMP);
+                transform->position.x = graphics->sprite->w * x;
+                transform->position.y = graphics->sprite->h * y;
+
+                map->go_map[x][y] = go;
+            }
+        }
+    }
+
+}
+
+Cave *cave_generate (Map *map, u32 width, u32 heigth, u32 seed, u32 fillPercent) {
 
     Cave *cave = (Cave *) malloc (sizeof (Cave));
     if (cave) {
@@ -110,7 +139,9 @@ Cave *cave_generate (u32 width, u32 heigth, u32 seed, u32 fillPercent) {
         cave->heigth = heigth;
 
         cave->map = (u8 **) calloc (width, sizeof (u8 *));
-        for (u8 i = 0; i < width; i++) cave->map[i] = (u8 *) calloc (heigth, sizeof (u8));
+        for (u16 i = 0; i < width; i++) cave->map[i] = (u8 *) calloc (heigth, sizeof (u8));
+
+        cave->fillPercent = fillPercent;
 
         // FIXME: use a random seed
         if (seed <= 0) {
@@ -121,7 +152,9 @@ Cave *cave_generate (u32 width, u32 heigth, u32 seed, u32 fillPercent) {
         
         cave_random_fill_map (cave);
 
-        for (u8 i = 0; i < 5; i++) cave_smooth_map (cave);
+        for (u8 i = 0; i < 3; i++) cave_smooth_map (cave);
+
+        cave_draw (map, cave);
     }
 
     return cave;
@@ -133,6 +166,39 @@ void cave_destroy (Cave *cave) {
     if (cave) {
         if (cave->map) free (cave->map);
         free (cave);
+    }
+
+}
+
+#pragma endregion
+
+#pragma region MAP
+
+Map *map_create (u32 width, u32 heigth) {
+
+    Map *new_map = (Map *) malloc (sizeof (Map));
+    if (new_map) {
+        new_map->width = width;
+        new_map->heigth = heigth;
+
+        new_map->go_map = (GameObject ***) calloc (width, sizeof (GameObject **));
+        for (u16 i = 0; i < new_map->width; i++) 
+            new_map->go_map[i] = (GameObject **) calloc (new_map->heigth, sizeof (GameObject *));
+
+        new_map->cave = NULL;
+    }
+
+    return new_map;
+
+}
+
+void map_destroy (Map *map) {
+
+    if (map) {
+        if (map->go_map) free (map->go_map);
+        if (map->cave) cave_destroy (map->cave);
+
+        free (map);
     }
 
 }

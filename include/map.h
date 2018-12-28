@@ -36,7 +36,18 @@ typedef struct Cave {
 
 } Cave;
 
-extern Cave *cave_generate (u32 width, u32 heigth, u32 seed, u32 fillPercent);
+typedef struct Map {
+
+    u32 width, heigth;
+    GameObject ***go_map;
+    Cave *cave;
+
+} Map;
+
+extern Cave *cave_generate (Map *map, u32 width, u32 heigth, u32 seed, u32 fillPercent);
 extern void cave_destroy (Cave *cave);
+
+extern Map *map_create (u32 width, u32 height);
+extern void map_destroy (Map *map);
 
 #endif

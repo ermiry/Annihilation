@@ -8,10 +8,11 @@
 #include "engine/sprites.h"
 #include "vector2d.h"
 
-#define DEFAULT_MAX_GOS     10
+#define DEFAULT_MAX_GOS     200
 
 #define COMP_COUNT          4
 
+// FIXME: implement parent - child hierarchy
 typedef struct GameObject {
 
     i32 id;
@@ -75,8 +76,8 @@ typedef struct Graphics {
 
 } Graphics;
 
-extern void graphics_set_sprite_sheet (Graphics *graphics, const char *filename, 
-    SDL_Renderer *renderer);
+extern void graphics_set_sprite (Graphics *graphics, const char *filename);
+extern void graphics_set_sprite_sheet (Graphics *graphics, const char *filename);
 
 extern void game_object_add_component (GameObject *go, GameComponent component);
 extern void *game_object_get_component (GameObject *go, GameComponent component);
