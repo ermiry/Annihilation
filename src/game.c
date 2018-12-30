@@ -81,6 +81,36 @@ void graphics_set_sprite_sheet (Graphics *graphics, const char *filename) {
 
 }
 
+static BoxCollider *collider_box_new (u32 objectID) {
+
+    BoxCollider *new_collider = (BoxCollider *) malloc (sizeof (BoxCollider));
+    if (new_collider) {
+        new_collider->x = new_collider->y = 0;
+        new_collider->w = new_collider->h = 0;
+    }
+
+    return new_collider;
+
+}
+
+// FIXME:
+void collider_box_init (u32 x, u32 y, u32 w, u32 h) {}
+
+bool collider_box_collision (const BoxCollider *a, const BoxCollider *b) {
+
+    if (a && b) 
+        if (a->x + a->w >= b->x &&
+            b->x + b->w >= a->x &&
+            a->y + a->h >= b->y &&
+            b->y + b->h >= a->y)
+                return true;
+
+    return false;
+
+}
+
+static void collider_box_destroy (BoxCollider *box) { if (box) free (box); }
+
 #pragma endregion
 
 /*** GAME OBJECTS ***/
@@ -201,22 +231,32 @@ static void game_object_delete (GameObject *go) {
 }
 
 // TODO: implement object pooling for components
-void game_object_add_component (GameObject *go, GameComponent component) {
+void *game_object_add_component (GameObject *go, GameComponent component) {
+
+    void *retval = NULL;
 
     if (go) {
         switch (component) {
-            case TRANSFORM_COMP: go->components[component] = transform_new (go->id); break;
-            case GRAPHICS_COMP: go->components[component] = graphics_new (go->id); break;
+            case TRANSFORM_COMP: 
+                retval = go->components[component] = transform_new (go->id); 
+                break;
+            case GRAPHICS_COMP: 
+                retval = go->components[component] = graphics_new (go->id); 
+                break;
+            case ANIMATOR_COMP: 
+                retval = go->components[component] = animator_new (go->id); 
+                break;
 
-            case ANIMATOR_COMP: go->components[component] = animator_new (go->id); break;
             case PLAYER_COMP: 
-                go->components[component] = player_create_comp (go->id); 
+                retval = go->components[component] = player_create_comp (go->id); 
                 go->update = player_update;
                 break;
 
             default: break;
         }
     }
+
+    return retval;
 
 }
 
@@ -290,6 +330,8 @@ static void game_render (void) {
 }
 
 void game_cleanUp (void) {
+
+    map_destroy (game_map);
 
     // clean up game objects
     for (u32 i = 0; i < curr_max_objs; i++) 

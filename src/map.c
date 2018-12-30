@@ -103,6 +103,9 @@ static void cave_smooth_map (Cave *cave) {
 
 }
 
+// TODO: create a more advanced system based on c sharp accent resources manager
+// TODO: also create a more advance system for multiple sprites and gameobjects for
+// destroying the map
 // TODO: create a parent gameobejct and names based on position
 // create a game object for each cave
 static void cave_draw (Map *map, Cave *cave) {

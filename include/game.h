@@ -10,7 +10,7 @@
 
 #define DEFAULT_MAX_GOS     200
 
-#define COMP_COUNT          4
+#define COMP_COUNT          5
 
 // FIXME: implement parent - child hierarchy
 typedef struct GameObject {
@@ -34,10 +34,14 @@ typedef enum GameComponent {
     TRANSFORM_COMP = 0,
     GRAPHICS_COMP,
     ANIMATOR_COMP,
+    BOX_COLLIDER_COMP,
 
     PLAYER_COMP,
 
 } GameComponent;
+
+extern void *game_object_add_component (GameObject *go, GameComponent component);
+extern void *game_object_get_component (GameObject *go, GameComponent component);
 
 typedef struct Transform {
 
@@ -79,8 +83,14 @@ typedef struct Graphics {
 extern void graphics_set_sprite (Graphics *graphics, const char *filename);
 extern void graphics_set_sprite_sheet (Graphics *graphics, const char *filename);
 
-extern void game_object_add_component (GameObject *go, GameComponent component);
-extern void *game_object_get_component (GameObject *go, GameComponent component);
+typedef struct BoxCollider {
+
+    u32 goID;
+
+    u32 x, y;
+    u32 w, h;
+
+} BoxCollider;
 
 /*** GAME MANAGER ***/
 
