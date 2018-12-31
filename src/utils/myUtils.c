@@ -25,6 +25,15 @@ int random_int_in_range (int min, int max) {
 
 }
 
+int clamp_int (int val, int min, int max) {
+
+    const int t = val < min ? min : val;
+    return t > max ? max : t;
+
+}
+
+int abs_int (int value) { return value > 0 ? value : (value * -1); }
+
 /*** STRINGS ***/
 
 char *createString (const char *stringWithFormat, ...) {
