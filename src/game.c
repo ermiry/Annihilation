@@ -13,6 +13,8 @@
 #include "engine/textures.h"
 #include "engine/animation.h"
 
+#include "utils/log.h"
+
 /*** GAME COMPONENTS ***/
 
 #pragma region GAME COMPONENTS
@@ -385,6 +387,10 @@ void game_cleanUp (void) {
             game_object_delete (gameObjects[i]);
 
     free (gameObjects);
+
+    #ifdef DEV
+    logMsg (stdout, SUCCESS, GAME, "Done cleaning up game data!");
+    #endif
     
 }
 

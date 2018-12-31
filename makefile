@@ -3,6 +3,8 @@ TARGET      := annihilation
 SDL2 = `sdl2-config --cflags --libs` -l SDL2_image
 MATH = -lm 
 
+DEFINES = -D DEV
+
 CC          := gcc
 
 SRCDIR      := src
@@ -13,7 +15,7 @@ SRCEXT      := c
 DEPEXT      := d
 OBJEXT      := o
 
-CFLAGS      := -g $(DEFINES) $(RUN_MAKE)
+CFLAGS      := -g $(DEFINES)
 LIB         := $(SDL2) $(MATH)
 INC         := -I $(INCDIR) -I /usr/local/include
 INCDEP      := -I $(INCDIR)
