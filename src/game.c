@@ -177,6 +177,8 @@ GameObject *game_object_new (const char *name, const char *tag) {
 
         for (u8 i = 0; i < COMP_COUNT; i++) new_go->components[i] = NULL;
 
+        new_go->children = NULL;
+
         new_go->update = NULL;
 
         new_go->id = new_go_id;
@@ -190,6 +192,18 @@ GameObject *game_object_new (const char *name, const char *tag) {
 
 }
 
+void game_object_add_child (GameObject *parent, GameObject *child) {
+
+    if (parent && child) {
+        if (!parent->children) parent->children = llist_init (NULL);
+        llist_insert_next (parent->children, llist_end (parent->children), child);
+    }
+
+}
+
+// TODO:
+void game_object_remove_child (GameObject *parent, GameObject *child) {}
+
 // mark as inactive or reusable the game object
 static void game_object_destroy (GameObject *go) {
 
@@ -199,6 +213,8 @@ static void game_object_destroy (GameObject *go) {
 
         if (go->name) free (go->name);
         if (go->tag) free (go->tag);
+
+        if (go->children) free (go->children);
 
         // individually destroy each component
         transform_destroy ((Transform *) go->components[TRANSFORM_COMP]);

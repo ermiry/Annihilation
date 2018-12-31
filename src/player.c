@@ -65,17 +65,11 @@ GameObject *player_init (void) {
 
     GameObject *new_player_go = game_object_new ("player", NULL);
     if (new_player_go) {
-        game_object_add_component (new_player_go, TRANSFORM_COMP);
-        game_object_add_component (new_player_go, GRAPHICS_COMP);
-        game_object_add_component (new_player_go, ANIMATOR_COMP);
-        game_object_add_component (new_player_go, PLAYER_COMP);
+        my_trans = (Transform *) game_object_add_component (new_player_go, TRANSFORM_COMP);
+        my_graphics = (Graphics *) game_object_add_component (new_player_go, GRAPHICS_COMP);
+        my_anim = (Animator *) game_object_add_component (new_player_go, ANIMATOR_COMP);
+        mainPlayer = (Player *) game_object_add_component (new_player_go, PLAYER_COMP);
 
-        mainPlayer = (Player *) game_object_get_component (new_player_go, PLAYER_COMP);
-        if (!mainPlayer) fprintf (stderr, "Failed to get player component!\n");
-
-        my_trans = (Transform *) game_object_get_component (new_player_go, TRANSFORM_COMP);
-
-        my_graphics = (Graphics *) game_object_get_component (new_player_go, GRAPHICS_COMP);
         graphics_set_sprite_sheet (my_graphics, "./assets/artwork/adventurer-sheet.png");
         sprite_sheet_set_sprite_size (my_graphics->spriteSheet, 50, 37);
         sprite_sheet_set_scale_factor (my_graphics->spriteSheet, 6);
@@ -106,7 +100,6 @@ GameObject *player_init (void) {
             my_graphics->spriteSheet->individualSprites[6][5], my_graphics->spriteSheet->individualSprites[7][5]);
         animation_set_speed (player_attack_anim, 100);  
 
-        my_anim = (Animator *) game_object_get_component (new_player_go, ANIMATOR_COMP);
         animator_set_current_animation (my_anim, player_idle_anim);
     }
 

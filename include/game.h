@@ -8,11 +8,12 @@
 #include "engine/sprites.h"
 #include "vector2d.h"
 
+#include "utils/llist.h"
+
 #define DEFAULT_MAX_GOS     200
 
 #define COMP_COUNT          5
 
-// FIXME: implement parent - child hierarchy
 typedef struct GameObject {
 
     i32 id;
@@ -21,11 +22,14 @@ typedef struct GameObject {
     char *tag;
     void *components[COMP_COUNT];
 
+    LList *children;
+
     void (*update)(void *data);
 
 } GameObject;
 
 extern GameObject *game_object_new (const char *name, const char *tag);
+extern void game_object_add_child (GameObject *parent, GameObject *child);
 
 /*** COMPONENTS ***/
 
