@@ -122,8 +122,23 @@ u32 max_gos;
 u32 curr_max_objs;
 u32 new_go_id;
 
+static bool game_objects_realloc (void) {
+
+    u32 new_max_gos = curr_max_objs * 2;
+
+    gameObjects = realloc (gameObjects, new_max_gos * sizeof (gameObjects));
+
+    if (gameObjects) {
+        max_gos = new_max_gos;
+        return true;
+    }
+
+    return false;
+
+}
+
 // init our game objects array
-static u8 game_object_init (void) {
+static u8 game_objects_init_all (void) {
 
     gameObjects = (GameObject **) calloc (DEFAULT_MAX_GOS, sizeof (GameObject *));
     if (gameObjects) {
@@ -150,6 +165,34 @@ static i32 game_object_get_free_spot (void) {
 
 }
 
+static void game_object_init (GameObject *go, u32 id, const char *name, const char *tag) {
+
+    if (go) {
+        go->id = id;
+
+        if (name) {
+            go->name = (char *) calloc (strlen (name) + 1, sizeof (char));
+            strcpy (go->name, name);
+        }
+
+        else go->name = NULL;
+
+        if (tag) {
+            go->tag = (char *) calloc (strlen (name) + 1, sizeof (char));
+            strcpy (go->tag, tag);
+        }
+
+        else go->tag = NULL;
+
+        for (u8 i = 0; i < COMP_COUNT; i++) go->components[i] = NULL;
+
+        go->children = NULL;
+
+        go->update = NULL;
+    }
+
+}
+
 // game object constructor
 GameObject *game_object_new (const char *name, const char *tag) {
 
@@ -157,36 +200,23 @@ GameObject *game_object_new (const char *name, const char *tag) {
 
     // first check if we have a reusable go in the array
     i32 spot = game_object_get_free_spot ();
-    if (spot >= 0) new_go = gameObjects[spot];
-    else new_go = (GameObject *) malloc (sizeof (GameObject));
 
-    if (new_go) {
-        if (name) {
-            new_go->name = (char *) calloc (strlen (name) + 1, sizeof (char));
-            strcpy (new_go->name, name);
+    if (spot >= 0) {
+        new_go = gameObjects[spot];
+        game_object_init (new_go, spot, name, tag);
+    } 
+
+    else {
+        if (new_go_id >= max_gos) game_objects_realloc ();
+
+        new_go = (GameObject *) malloc (sizeof (GameObject));
+        if (new_go) {
+            game_object_init (new_go, new_go_id, name, tag);
+            gameObjects[new_go->id] = new_go;
+            new_go_id++;
+            curr_max_objs++;
         }
-
-        else new_go->name = NULL;
-
-        if (tag) {
-            new_go->tag = (char *) calloc (strlen (name) + 1, sizeof (char));
-            strcpy (new_go->tag, tag);
-        }
-
-        else new_go->tag = NULL;
-
-        for (u8 i = 0; i < COMP_COUNT; i++) new_go->components[i] = NULL;
-
-        new_go->children = NULL;
-
-        new_go->update = NULL;
-
-        new_go->id = new_go_id;
-        new_go_id++;
-
-        gameObjects[new_go->id] = new_go;
-        curr_max_objs++;
-    }
+    } 
 
     return new_go;
 
@@ -295,10 +325,10 @@ Map *game_map = NULL;
 
 static u8 game_init (void) {
 
-    game_object_init ();
+    game_objects_init_all ();
 
-    game_map = map_create (10, 10);
-    game_map->cave = cave_generate (game_map, game_map->width, game_map->heigth, 10, 10);
+    game_map = map_create (100, 50);
+    game_map->cave = cave_generate (game_map, game_map->width, game_map->heigth, 100, 50);
 
     main_player_go = player_init ();
 
