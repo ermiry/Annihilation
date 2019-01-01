@@ -7,6 +7,8 @@ extern int random_int_in_range (int min, int max);
 extern int clamp_int (int val, int min, int max);
 extern int abs_int (int value);
 
+extern float lerp (float first, float second, float by);
+
 extern char *createString (const char *stringWithFormat, ...);
 
 #endif

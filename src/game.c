@@ -8,6 +8,7 @@
 #include "game.h"
 #include "map.h"
 #include "player.h"
+#include "camera.h"
 
 #include "engine/renderer.h"
 #include "engine/textures.h"
@@ -334,6 +335,9 @@ static u8 game_init (void) {
 
     main_player_go = player_init ();
 
+    camera_new (10, 10);
+    camera_set_target ((Transform *) game_object_get_component (main_player_go, TRANSFORM_COMP));
+
     return 0;
 
 }
@@ -351,6 +355,8 @@ static void game_update (void) {
                 gameObjects[i]->update (NULL);
         }
     }
+
+    camera_update ();
     
 }
 
@@ -380,6 +386,8 @@ static void game_render (void) {
 void game_cleanUp (void) {
 
     map_destroy (game_map);
+
+    camera_destroy ();
 
     // clean up game objects
     for (u32 i = 0; i < curr_max_objs; i++) 

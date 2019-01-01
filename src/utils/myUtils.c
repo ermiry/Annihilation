@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include "utils/myUtils.h"
+
 // init psuedo random generator based on our seed
 // TODO: implement srandom and random in linux
 void random_set_seed (unsigned int seed) { srand (seed); }
@@ -33,6 +35,8 @@ int clamp_int (int val, int min, int max) {
 }
 
 int abs_int (int value) { return value > 0 ? value : (value * -1); }
+
+float lerp (float first, float second, float by) { return first * (1 - by) + second * by; }
 
 /*** STRINGS ***/
 

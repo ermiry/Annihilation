@@ -10,12 +10,12 @@
 
 static Camera *mainCam = NULL;
 
-void camera_new (u32 x, u32 y) {
+void camera_new (u32 posX, u32 posY) {
 
     mainCam = (Camera *) malloc (sizeof (Camera));
     if (mainCam) {
-        mainCam->transform.position.x = x;
-        mainCam->transform.position.y = y;
+        mainCam->transform.position.x = posX;
+        mainCam->transform.position.y = posY;
 
         mainCam->orthoSize = DEFAULT_CAM_ORTHO_SIZE;
 
@@ -49,16 +49,21 @@ void camera_set_target (Transform *target) {
     
 }
 
-// FIXME:
 void camera_update (void) {
 
     u32 x = mainCam->transform.position.x;
     u32 y = mainCam->transform.position.y;
 
+    // TODO: multiply by time.deltatime
     if (mainCam->isFollwing) {
+        if (abs (x - mainCam->target->position.x) > mainCam->margin.x)
+            x = lerp (x, mainCam->target->position.x, mainCam->smoothing.x);
 
+        if (abs (y - mainCam->target->position.y) > mainCam->margin.y)
+            y = lerp (y, mainCam->target->position.y, mainCam->smoothing.y);
     }
 
+    // TODO: create a function to set this at the beginning of each scene?
     float cameraHalfWidth = mainCam->orthoSize * ((float) SCREEN_WIDTH / SCREEN_HEIGHT);
 
     x = clamp_int (x, mainCam->min.x + cameraHalfWidth, mainCam->max.x - cameraHalfWidth);
