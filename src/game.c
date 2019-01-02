@@ -349,6 +349,20 @@ static void game_onEnter (void) { game_init (); }
 
 static void game_onExit (void) {}
 
+// void Game::update()
+// {
+// 	//get delta time
+// 	unsigned int currentTime = LTimer::gameTime();//millis since game started
+// 	float deltaTime = (currentTime - m_lastTime) / 1000.f;//time since last update
+
+// 	//update camera
+// 	if (deltaTime < 60.f / 1000.f)
+// 		m_camera.update(deltaTime);
+				
+// 	//remember time
+// 	m_lastTime = currentTime;//save the curent time for next frame
+// }
+
 static void game_update (void) {
 
     // update every game object
