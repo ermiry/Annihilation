@@ -8,68 +8,100 @@
 
 #include "utils/myUtils.h"
 
-static Camera *mainCam = NULL;
+// FIXME: set all initial parameters to default values
+Camera *camera_new (u32 windowWidth, u32 windowHeight) {
 
-void camera_new (u32 posX, u32 posY) {
+    Camera *cam = (Camera *) malloc (sizeof (Camera));
+    if (cam) {
+        cam->windowWidth = windowWidth;
+        cam->windowHeight = windowHeight;
 
-    mainCam = (Camera *) malloc (sizeof (Camera));
-    if (mainCam) {
-        mainCam->transform.position.x = posX;
-        mainCam->transform.position.y = posY;
+        cam->bounds.x = cam->bounds.y = 0;
+        cam->bounds.w = windowWidth;
+        cam->bounds.h = windowHeight;
+    }
 
-        mainCam->orthoSize = DEFAULT_CAM_ORTHO_SIZE;
+    return cam;
 
-        mainCam->min.x = mainCam->min.y = 0;
-        mainCam->max.x = mainCam->max.y = 0;
+}
 
-        mainCam->isFollwing = false;
-        mainCam->target = NULL;
+void camera_destroy (Camera *cam) {
+
+    if (cam) {
+        cam->target = NULL;
+
+        free (cam);
     }
 
 }
 
-void camera_destroy (void) {
+void camera_set_center (Camera *cam, u32 x, u32 y) {
 
-    if (mainCam) {
-        mainCam->target = NULL;
-
-        free (mainCam);
+    if (cam) {
+        cam->center.x = x;
+        cam->center.y = y;
+        cam->bounds.x = x - (cam->bounds.w * 0.5);
+        cam->bounds.y = y - (cam->bounds.h * 0.5);
     }
 
 }
 
-// TODO: set camera bounds
+// TODO:
+void camera_set_size (Camera *cam, u32 width, u32 height) {
 
-void camera_set_target (Transform *target) { 
-    
-    if (target) {
-        mainCam->target = target;
-        mainCam->isFollwing = true;
-    }  
-    
-}
+    if (cam) {
 
-void camera_update (void) {
-
-    u32 x = mainCam->transform.position.x;
-    u32 y = mainCam->transform.position.y;
-
-    // TODO: multiply by time.deltatime
-    if (mainCam->isFollwing) {
-        if (abs (x - mainCam->target->position.x) > mainCam->margin.x)
-            x = lerp (x, mainCam->target->position.x, mainCam->smoothing.x);
-
-        if (abs (y - mainCam->target->position.y) > mainCam->margin.y)
-            y = lerp (y, mainCam->target->position.y, mainCam->smoothing.y);
     }
 
-    // TODO: create a function to set this at the beginning of each scene?
-    float cameraHalfWidth = mainCam->orthoSize * ((float) SCREEN_WIDTH / SCREEN_HEIGHT);
+}
 
-    x = clamp_int (x, mainCam->min.x + cameraHalfWidth, mainCam->max.x - cameraHalfWidth);
-    y = clamp_int (y, mainCam->min.y + mainCam->orthoSize, mainCam->max.y - mainCam->orthoSize);
+static Point point_world_to_screen (Camera *cam, const Point p, 
+    float xScale, float yScale) {
 
-    mainCam->transform.position.x = x;
-    mainCam->transform.position.y = y;
+    Point retPoint = p;
+
+    retPoint.x -= cam->bounds.x;
+    retPoint.y -= cam->bounds.y;
+
+    retPoint.x *= xScale;
+    retPoint.y *= yScale;
+
+    return retPoint;
+
+}
+
+CamRect camera_world_to_screen (Camera *cam, const CamRect destRect) {
+
+    if (cam) {
+        CamRect screenRect = destRect;
+
+        float xScale = (float) cam->windowWidth / cam->bounds.w;
+        float yScale = (float) cam->windowHeight / cam->bounds.h;
+
+        Point screenPoint = { screenRect.x, screenRect.y };
+        screenPoint = point_world_to_screen (cam, screenPoint, xScale, yScale);
+
+        screenRect.x = screenPoint.x;
+        screenRect.y = screenPoint.y;
+        screenRect.w = (int) (screenRect.w * xScale);
+        screenRect.h = (int) (screenRect.h * yScale);
+
+        return screenRect;
+    }
+
+}
+
+// FIXME:
+CamRect *camera_screen_to_world (Camera *cam, const CamRect *sr) {
+
+    // CamRect *rect = sr;
+
+    // float xScale = (float) cam->bounds.w / cam->windowWidth;
+    // float yScale = (float) cam->bounds.h / cam->windowHeight;
+
+    // Point p = { rect->x, rect->y };
+    // FIXME:
+
+    // rect->x = 
 
 }

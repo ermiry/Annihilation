@@ -1,6 +1,12 @@
 #ifndef VECTOR2D_H
 #define VECTOR2D_H
 
+typedef struct Point {
+
+    int x, y;
+
+} Point;
+
 typedef struct Vector2D { 
 
     float x, y;

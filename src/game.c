@@ -325,6 +325,7 @@ GameState *game_state = NULL;
 
 // TODO: this is only for testing
 Map *game_map = NULL;
+Camera *game_camera = NULL;
 
 static u8 game_init (void) {
 
@@ -335,8 +336,9 @@ static u8 game_init (void) {
 
     main_player_go = player_init ();
 
-    camera_new (10, 10);
-    camera_set_target ((Transform *) game_object_get_component (main_player_go, TRANSFORM_COMP));
+    game_camera = camera_new (10, 10);
+    // FIXME:
+    // camera_set_target ((Transform *) game_object_get_component (main_player_go, TRANSFORM_COMP));
 
     return 0;
 
@@ -355,8 +357,6 @@ static void game_update (void) {
                 gameObjects[i]->update (NULL);
         }
     }
-
-    camera_update ();
     
 }
 
@@ -386,8 +386,6 @@ static void game_render (void) {
 void game_cleanUp (void) {
 
     map_destroy (game_map);
-
-    camera_destroy ();
 
     // clean up game objects
     for (u32 i = 0; i < curr_max_objs; i++) 
