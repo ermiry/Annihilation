@@ -9,10 +9,10 @@
 
 #include "vector2d.h"
 
-#define DEFAULT_CAM_ACCEL       100
-#define DEFAULT_CAM_MAX_VEL     200
-#define DEFAULT_CAM_MIN_VEL     5
-#define DEFAULT_CAM_DRAG        0.9
+#define DEFAULT_CAM_ACCEL           1
+#define DEFAULT_CAM_MAX_VEL         2
+#define DEFAULT_CAM_MIN_VEL         1
+#define DEFAULT_CAM_DRAG            0.9
 
 #define DEFAULT_CAM_ZOOM_SPEED      0.01
 #define DEFAULT_CAM_ZOOM_TO_SPEED   1

@@ -331,12 +331,13 @@ static u8 game_init (void) {
 
     game_objects_init_all ();
 
-    game_map = map_create (100, 50);
+    game_map = map_create (50, 30);
     game_map->cave = cave_generate (game_map, game_map->width, game_map->heigth, 100, 50);
 
-    main_player_go = player_init ();
+    // main_player_go = player_init ();
 
-    game_camera = camera_new (10, 10);
+    game_camera = camera_new (SCREEN_WIDTH, SCREEN_HEIGHT);
+    camera_set_center (game_camera, 25, 15);
     // FIXME:
     // camera_set_target ((Transform *) game_object_get_component (main_player_go, TRANSFORM_COMP));
 
@@ -384,6 +385,8 @@ static void game_render (void) {
 }
 
 void game_cleanUp (void) {
+
+    camera_destroy (game_camera);
 
     map_destroy (game_map);
 

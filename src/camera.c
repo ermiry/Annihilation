@@ -4,22 +4,18 @@
 #include "game.h"
 #include "camera.h"
 
+#include "engine/input.h"
 #include "vector2d.h"
 
 #include "utils/myUtils.h"
 
-// FIXME: set all initial parameters to default values
+static void camera_init (Camera *cam, u32 windowWidth, u32 windowHeight);
+
+// camera constructor
 Camera *camera_new (u32 windowWidth, u32 windowHeight) {
 
     Camera *cam = (Camera *) malloc (sizeof (Camera));
-    if (cam) {
-        cam->windowWidth = windowWidth;
-        cam->windowHeight = windowHeight;
-
-        cam->bounds.x = cam->bounds.y = 0;
-        cam->bounds.w = windowWidth;
-        cam->bounds.h = windowHeight;
-    }
+    if (cam) camera_init (cam, windowWidth, windowHeight);
 
     return cam;
 
@@ -54,6 +50,47 @@ void camera_set_size (Camera *cam, u32 width, u32 height) {
     }
 
 }
+
+void camera_set_vel (Camera *cam, Vector2D vel) { if (cam) cam->velocity = vel; }
+
+void camera_set_acceleration (Camera *cam, Vector2D accel) { if (cam) cam->acceleration = accel; }
+
+void camera_set_direction (Camera *cam, Vector2D dir) { if (cam) cam->direction = dir; }
+
+// set camera parameters to default
+static void camera_init (Camera *cam, u32 windowWidth, u32 windowHeight) {
+
+    // position
+    cam->transform.position.x = SCREEN_WIDTH / 2;
+    cam->transform.position.y = SCREEN_HEIGHT / 2;
+
+    cam->windowWidth = windowWidth;
+    cam->windowHeight = windowHeight;
+
+    cam->bounds.x = cam->bounds.y = 0;
+    cam->bounds.w = windowWidth;
+    cam->bounds.h = windowHeight;
+
+    // motion
+    cam->accelerationRate = DEFAULT_CAM_ACCEL;
+    cam->maxVel = DEFAULT_CAM_MAX_VEL;
+    cam->drag = DEFAULT_CAM_DRAG;
+
+    camera_set_center (cam, 0, 0);
+
+    Vector2D nullVector = { 0, 0 };
+    camera_set_vel (cam, nullVector);
+    camera_set_acceleration (cam, nullVector);
+    camera_set_direction (cam, nullVector);
+
+    cam->isFollwing = false;
+    cam->target = NULL;
+
+}
+
+/*** SCREEN ***/
+
+#pragma region SCREEN
 
 static Point point_world_to_screen (Camera *cam, const Point p, 
     float xScale, float yScale) {
@@ -103,5 +140,43 @@ CamRect *camera_screen_to_world (Camera *cam, const CamRect *sr) {
     // FIXME:
 
     // rect->x = 
+
+}
+
+#pragma endregion
+
+/*** MOVEMENT ***/
+
+#pragma region MOVEMENT
+
+void camera_set_max_vel (Camera *cam, float maxVel) { 
+    
+    if (cam) cam->maxVel = maxVel > 0 ? maxVel : 0; 
+    
+}
+
+// TODO: do we need to normalize the movement when in diagonal?
+// TODO: check again with draft
+void camera_pan (Camera *cam, u32 xdir, u32 ydir) {
+
+    if (cam) {
+        Vector2D move = { xdir, ydir };
+        vector_multiply_equal (&move, cam->accelerationRate);
+        vector_add_equal (&cam->acceleration, move);
+
+        printf ("camera move!\n");
+    }
+
+}
+
+#pragma endregion
+
+void camera_update (Camera *cam) {
+
+    // camera movement with arrows
+    if (input_is_key_down (SDL_SCANCODE_LEFT)) camera_pan (cam, -1, 0);
+    if (input_is_key_down (SDL_SCANCODE_RIGHT)) camera_pan (cam, 1, 0);
+    if (input_is_key_down (SDL_SCANCODE_UP)) camera_pan (cam, 0, -1);
+    if (input_is_key_down (SDL_SCANCODE_DOWN)) camera_pan (cam, 0, 1);
 
 }
