@@ -334,10 +334,10 @@ static u8 game_init (void) {
     game_map = map_create (50, 30);
     game_map->cave = cave_generate (game_map, game_map->width, game_map->heigth, 100, 50);
 
-    // main_player_go = player_init ();
+    main_player_go = player_init ();
 
     game_camera = camera_new (SCREEN_WIDTH, SCREEN_HEIGHT);
-    camera_set_center (game_camera, 25, 15);
+    camera_set_center (game_camera, 1600, 900);
     // FIXME:
     // camera_set_target ((Transform *) game_object_get_component (main_player_go, TRANSFORM_COMP));
 
@@ -349,6 +349,7 @@ static void game_onEnter (void) { game_init (); }
 
 static void game_onExit (void) {}
 
+// FIXME:
 // void Game::update()
 // {
 // 	//get delta time
@@ -372,6 +373,9 @@ static void game_update (void) {
                 gameObjects[i]->update (NULL);
         }
     }
+
+    // update the camera
+    camera_update (game_camera);
     
 }
 
@@ -390,7 +394,7 @@ static void game_render (void) {
                 graphics->flip);
             
             else
-                texture_draw (main_renderer, graphics->sprite, 
+                texture_draw (game_camera, graphics->sprite, 
                 transform->position.x, transform->position.y, 
                 graphics->flip);
         }

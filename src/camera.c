@@ -157,26 +157,74 @@ void camera_set_max_vel (Camera *cam, float maxVel) {
 
 // TODO: do we need to normalize the movement when in diagonal?
 // TODO: check again with draft
-void camera_pan (Camera *cam, u32 xdir, u32 ydir) {
+void camera_pan (Camera *cam, float xdir, float ydir) {
 
     if (cam) {
         Vector2D move = { xdir, ydir };
-        vector_multiply_equal (&move, cam->accelerationRate);
-        vector_add_equal (&cam->acceleration, move);
+        // vector_multiply_equal (&move, cam->accelerationRate);
+        // vector_add_equal (&cam->acceleration, move);
 
-        printf ("camera move!\n");
+        vector_add_equal (&cam->center, move);
     }
 
 }
 
 #pragma endregion
 
+// void Camera2D::Camera::updateMotion(float deltaTime)
+// {
+
+// 		m_acceleration.limit(m_accelerationRate);
+// 		m_velocity += m_acceleration * deltaTime;
+
+// 		m_centre += m_velocity * deltaTime;
+// 		m_velocity.limit(m_maxVelocity);
+
+// 	m_timeSinceLastXAccel += deltaTime;
+// 	m_timeSinceLastYAccel += deltaTime;
+
+// 	if (m_timeSinceLastXAccel > MAX_TIME_BEFORE_ACCEL_RESET && m_zoomToFitActive == false) //too long since last x accel
+// 	{
+// 		if (abs(m_velocity.x) < MIN_VEL) //moving slow enough then just stop 
+// 		{
+// 			m_velocity.x = 0.f;
+// 		}
+// 		else //apply drag
+// 		{
+// 			m_velocity.x -= m_velocity.x *  deltaTime * m_drag;
+// 		}
+// 	}
+// 	if (m_timeSinceLastYAccel > MAX_TIME_BEFORE_ACCEL_RESET && m_zoomToFitActive == false) //too long since last y accel
+// 	{
+// 		if (abs(m_velocity.y) < MIN_VEL) //moving slow enough then just stop 
+// 		{
+// 			m_velocity.y = 0.f;
+// 		}
+// 		else //apply drag
+// 		{
+// 			m_velocity.y -= m_velocity.y *  deltaTime * m_drag;
+// 		}
+// 	}
+
+// 	if (m_timeSinceLastXAccel > MAX_TIME_BEFORE_ACCEL_RESET && m_timeSinceLastYAccel > MAX_TIME_BEFORE_ACCEL_RESET && m_zoomToFitActive == false)
+// 	{
+// 		m_acceleration.limit(0.f);
+// 	}
+
+// }
+
 void camera_update (Camera *cam) {
 
-    // camera movement with arrows
-    if (input_is_key_down (SDL_SCANCODE_LEFT)) camera_pan (cam, -1, 0);
-    if (input_is_key_down (SDL_SCANCODE_RIGHT)) camera_pan (cam, 1, 0);
-    if (input_is_key_down (SDL_SCANCODE_UP)) camera_pan (cam, 0, -1);
-    if (input_is_key_down (SDL_SCANCODE_DOWN)) camera_pan (cam, 0, 1);
+    // camera input
+    #ifdef DEV
+        if (input_is_key_down (SDL_SCANCODE_LEFT)) camera_pan (cam, -1, 0);
+        if (input_is_key_down (SDL_SCANCODE_RIGHT)) camera_pan (cam, 1, 0);
+        if (input_is_key_down (SDL_SCANCODE_UP)) camera_pan (cam, 0, -1);
+        if (input_is_key_down (SDL_SCANCODE_DOWN)) camera_pan (cam, 0, 1);
+    #endif
+
+    // bounds - used to calculate what gets rendered to the screen
+    cam->bounds.x = (cam->center.x - cam->bounds.w * 0.5);
+    cam->bounds.y = (cam->center.y - cam->bounds.h * 0.5);
 
 }

@@ -3,6 +3,7 @@
 
 #include "annihilation.h"
 
+#include "engine/renderer.h"
 #include "engine/sprites.h"
 
 /*** TEXTURE MANAGER ***/
@@ -29,15 +30,40 @@ void texture_get_dimensions (SDL_Texture *texture, u32 *w, u32 *h) {
 
 #include "camera.h"
 
-void texture_draw (SDL_Renderer *renderer, Sprite *sprite, i32 x, i32 y, SDL_RendererFlip flip) {
+// void Renderer::drawRect(const SDL_Rect& r, const Colour& colour) const
+// {
+// 	//m_camera->screenToWorld(r);
+// 	SDL_Rect screenRect = m_camera->worldToScreen(r);
+// 	if (m_camera->intersects(r))
+// 	{
+// 		setDrawColour(colour);
+// 		SDL_RenderFillRect(m_renderer, &screenRect);
+// 		setDrawColour(0, 0, 0, 255);
+// 		SDL_RenderDrawRect(m_renderer, &screenRect);
+// 	}
+// }
 
-    if (renderer && sprite) {
-        sprite->dest_rect.x = x;
-        sprite->dest_rect.y = y;
+// void texture_draw (SDL_Renderer *renderer, Sprite *sprite, i32 x, i32 y, SDL_RendererFlip flip) {
 
-        SDL_RenderCopyEx (renderer, sprite->texture, &sprite->src_rect, &sprite->dest_rect, 
-            0, 0, flip);
-    }
+//     if (renderer && sprite) {
+//         sprite->dest_rect.x = x;
+//         sprite->dest_rect.y = y;
+
+//         SDL_RenderCopyEx (renderer, sprite->texture, &sprite->src_rect, &sprite->dest_rect, 
+//             0, 0, flip);
+//     }
+
+// }
+
+void texture_draw (Camera *cam, Sprite *sprite, i32 x, i32 y, SDL_RendererFlip flip) {
+
+    sprite->dest_rect.x = x;
+    sprite->dest_rect.y = y;
+
+    CamRect screenRect = camera_world_to_screen (cam, sprite->dest_rect);
+
+    SDL_RenderCopyEx (main_renderer, sprite->texture, &sprite->src_rect, &screenRect, 
+        0, 0, flip);    
 
 }
 
