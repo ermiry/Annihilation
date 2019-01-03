@@ -1,29 +1,100 @@
 #ifndef UI_H
 #define UI_H
 
+#include <SDL2/SDL.h>
+
 #include "annihilation.h"
 
-/*** COMMON COLORS ***/
+/*** COMMON HEX COLORS ***/
 
-#define NO_COLOR        0x00000000
-#define WHITE           0xFFFFFFFF
-#define BLACK           0x000000FF
+#define HEX_NO_COLOR        0x00000000
+#define HEX_WHITE           0xFFFFFFFF
+#define HEX_BLACK           0x000000FF
 
-#define FULL_GREEN      0x00FF00FF
-#define FULL_RED        0xFF0000FF
+#define HEX_FULL_GREEN      0x00FF00FF
+#define HEX_FULL_RED        0xFF0000FF
 
-#define YELLOW          0xFFD32AFF
-#define SAPPHIRE        0x1E3799FF
+#define HEX_YELLOW          0xFFD32AFF
+#define HEX_SAPPHIRE        0x1E3799FF
 
-#define SILVER          0xBDC3C7FF
+#define HEX_SILVER          0xBDC3C7FF
 
 /*** UI ***/
 
 typedef SDL_Rect UIRect;
 
-/*** TEXT/FONTS ***/
+typedef SDL_Color RGBA_Color;
+
+/*** FONTS/TEXT ***/
+
+#pragma region FONT-TEXT
+
+#include <SDL2/SDL_ttf.h>
+
+typedef SDL_Texture FontImage;
 
 #define DEFAULT_FONT_SIZE       24
+
+typedef enum FilterEnum {
+
+    FILTER_NEAREST,
+    FILTER_LINEAR,
+
+} FilterEnum;
+
+typedef struct GlyphData {
+
+    UIRect rect;
+    int cacheLevel;
+
+} GlyphData;
+
+typedef struct FontMapNode {
+
+    u32 key;
+    GlyphData value;
+    struct FontMapNode *next;
+
+} FontMapNode;
+
+#define DEFAULT_FONT_MAP_N_BUCKETS      300
+
+typedef struct FontMap {
+
+    i32 n_buckets;
+    FontMapNode **buckets;
+
+} FontMap;
+
+typedef struct Font {
+
+    TTF_Font *ttf_source;
+    u8 owns_ttf_source;
+
+    FilterEnum filter;
+
+    RGBA_Color default_color;
+    u16 height;
+    u16 maxWidth;
+    u16 baseline;
+    i32 ascent;
+    i32 descent;
+
+    i32 lineSpacing;
+    i32 letterSpacing;
+
+    FontMap *glyphs;
+    GlyphData last_glyph;
+    i32 glyph_cache_size;
+    i32 glyph_cache_count;
+    FontImage **glyph_cache;
+    char *loading_string;
+
+} Font;
+
+extern Font *ui_font_create (void);
+
+/*** TEXTBOX ***/
 
 typedef struct TextBox {
 
@@ -51,6 +122,8 @@ extern TextBox *ui_textBox_create (u32 x, u32 y, const char *text, u32 textColor
 // extern void ui_textBox_update_text (TextBox *textbox, const char *text);
 // extern void ui_textbox_delete_text (TextBox *textbox);
 // extern void ui_textBox_draw (Console *console, TextBox *textbox);
+
+#pragma endregion
 
 /*** PUBLIC UI FUNCS ***/
 
