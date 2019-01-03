@@ -30,54 +30,34 @@ void texture_get_dimensions (SDL_Texture *texture, u32 *w, u32 *h) {
 
 #include "camera.h"
 
-// void Renderer::drawRect(const SDL_Rect& r, const Colour& colour) const
-// {
-// 	//m_camera->screenToWorld(r);
-// 	SDL_Rect screenRect = m_camera->worldToScreen(r);
-// 	if (m_camera->intersects(r))
-// 	{
-// 		setDrawColour(colour);
-// 		SDL_RenderFillRect(m_renderer, &screenRect);
-// 		setDrawColour(0, 0, 0, 255);
-// 		SDL_RenderDrawRect(m_renderer, &screenRect);
-// 	}
-// }
-
-// void texture_draw (SDL_Renderer *renderer, Sprite *sprite, i32 x, i32 y, SDL_RendererFlip flip) {
-
-//     if (renderer && sprite) {
-//         sprite->dest_rect.x = x;
-//         sprite->dest_rect.y = y;
-
-//         SDL_RenderCopyEx (renderer, sprite->texture, &sprite->src_rect, &sprite->dest_rect, 
-//             0, 0, flip);
-//     }
-
-// }
-
 void texture_draw (Camera *cam, Sprite *sprite, i32 x, i32 y, SDL_RendererFlip flip) {
 
-    sprite->dest_rect.x = x;
-    sprite->dest_rect.y = y;
+    if (cam && sprite) {
+        sprite->dest_rect.x = x;
+        sprite->dest_rect.y = y;
 
-    CamRect screenRect = camera_world_to_screen (cam, sprite->dest_rect);
+        CamRect screenRect = camera_world_to_screen (cam, sprite->dest_rect);
 
-    SDL_RenderCopyEx (main_renderer, sprite->texture, &sprite->src_rect, &screenRect, 
-        0, 0, flip);    
+        SDL_RenderCopyEx (main_renderer, sprite->texture, &sprite->src_rect, &screenRect, 
+            0, 0, flip);    
+    }
 
 }
 
-void texture_draw_frame (SDL_Renderer *renderer, SpriteSheet *spriteSheet, 
+void texture_draw_frame (Camera *cam, SpriteSheet *spriteSheet, 
     i32 x, i32 y, u32 col, u32 row, SDL_RendererFlip flip) {
 
-    if (renderer && spriteSheet) {
+    if (cam && spriteSheet) {
         spriteSheet->src_rect.x = spriteSheet->sprite_w * col;
         spriteSheet->src_rect.y = spriteSheet->sprite_h * row;
 
         spriteSheet->dest_rect.x = x;
         spriteSheet->dest_rect.y = y;
 
-        SDL_RenderCopyEx (renderer, spriteSheet->texture, &spriteSheet->src_rect, &spriteSheet->dest_rect,
+        CamRect screenRect = camera_world_to_screen (cam, spriteSheet->dest_rect);
+
+        SDL_RenderCopyEx (main_renderer, spriteSheet->texture, 
+            &spriteSheet->src_rect, &screenRect,
             0, 0, flip);
     }
 

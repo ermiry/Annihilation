@@ -337,7 +337,8 @@ static u8 game_init (void) {
     main_player_go = player_init ();
 
     game_camera = camera_new (SCREEN_WIDTH, SCREEN_HEIGHT);
-    camera_set_center (game_camera, 1600, 900);
+    // camera_set_center (game_camera, 1600, 900);
+    camera_set_center (game_camera, 0, 0);
     // FIXME:
     // camera_set_target ((Transform *) game_object_get_component (main_player_go, TRANSFORM_COMP));
 
@@ -348,21 +349,6 @@ static u8 game_init (void) {
 static void game_onEnter (void) { game_init (); }
 
 static void game_onExit (void) {}
-
-// FIXME:
-// void Game::update()
-// {
-// 	//get delta time
-// 	unsigned int currentTime = LTimer::gameTime();//millis since game started
-// 	float deltaTime = (currentTime - m_lastTime) / 1000.f;//time since last update
-
-// 	//update camera
-// 	if (deltaTime < 60.f / 1000.f)
-// 		m_camera.update(deltaTime);
-				
-// 	//remember time
-// 	m_lastTime = currentTime;//save the curent time for next frame
-// }
 
 static void game_update (void) {
 
@@ -379,6 +365,7 @@ static void game_update (void) {
     
 }
 
+// FIXME: we need to implement occlusion culling!
 static void game_render (void) {
 
     Transform *transform = NULL;
@@ -388,7 +375,7 @@ static void game_render (void) {
         graphics = (Graphics *) game_object_get_component (gameObjects[i], GRAPHICS_COMP);
         if (transform && graphics) {
             if (graphics->multipleSprites)
-                texture_draw_frame (main_renderer, graphics->spriteSheet, 
+                texture_draw_frame (game_camera, graphics->spriteSheet, 
                 transform->position.x, transform->position.y, 
                 graphics->x_sprite_offset, graphics->y_sprite_offset,
                 graphics->flip);

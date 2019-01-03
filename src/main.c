@@ -35,8 +35,12 @@ int main (void) {
     game_manager = game_manager_new (game_state);
 
     u32 timePerFrame = 1000 / FPS_LIMIT;
-    u32 frameStart;
-    i32 sleepTime;
+    u32 frameStart = 0;
+    i32 sleepTime = 0;
+    float deltaTime = 0;
+
+    u32 deltaTicks = 0;
+    u32 fps = 0;
 
     running = true;
     while (running) {
@@ -54,6 +58,16 @@ int main (void) {
         // limit the FPS
         sleepTime = timePerFrame - (SDL_GetTicks () - frameStart);
         if (sleepTime > 0) SDL_Delay (sleepTime);
+
+        deltaTime = SDL_GetTicks () - frameStart;
+        deltaTicks += deltaTime;
+        fps++;
+        if (deltaTicks > 1000) {
+            printf ("fps: %i\n", fps);
+            deltaTicks = 0;
+            fps = 0;
+        }
+            
     }
 
     // FIXME: i dont want this here!
