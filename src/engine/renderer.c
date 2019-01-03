@@ -5,6 +5,10 @@
 SDL_Window *main_window = NULL;
 SDL_Renderer *main_renderer = NULL;
 
+// FIXME: better render the ui
+#include "ui.h"
+extern TextBox *fpsText;
+
 // TODO: render by layers
 void render (void) {
 
@@ -12,6 +16,8 @@ void render (void) {
 
     if (game_manager->currState->render)
         game_manager->currState->render ();
+
+    SDL_RenderCopy (main_renderer, fpsText->texture, NULL, &fpsText->bgrect);
 
     SDL_RenderPresent (main_renderer);
 

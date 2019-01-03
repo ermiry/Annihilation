@@ -7,6 +7,7 @@
 #include "annihilation.h"
 
 #include "game.h"
+#include "ui.h"
 
 #include "engine/renderer.h"
 #include "engine/input.h"
@@ -22,6 +23,8 @@ void quit (void) {
 
 }
 
+TextBox *fpsText = NULL;
+
 int main (void) {
 
     srand ((unsigned) time (NULL));
@@ -34,6 +37,8 @@ int main (void) {
     game_state = game_state_new ();
     game_manager = game_manager_new (game_state);
 
+    ui_init ();
+
     u32 timePerFrame = 1000 / FPS_LIMIT;
     u32 frameStart = 0;
     i32 sleepTime = 0;
@@ -41,6 +46,8 @@ int main (void) {
 
     u32 deltaTicks = 0;
     u32 fps = 0;
+
+    fpsText = ui_textBox_create (100, 100, "Hola", 0, false);
 
     running = true;
     while (running) {
@@ -63,7 +70,7 @@ int main (void) {
         deltaTicks += deltaTime;
         fps++;
         if (deltaTicks > 1000) {
-            printf ("fps: %i\n", fps);
+            // printf ("fps: %i\n", fps);
             deltaTicks = 0;
             fps = 0;
         }
