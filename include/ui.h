@@ -35,6 +35,9 @@ typedef SDL_Texture FontImage;
 
 #define DEFAULT_FONT_SIZE       24
 
+#define TTF_STYLE_OUTLINE	        16
+#define FONT_LOAD_MAX_SURFACES      10
+
 typedef enum FilterEnum {
 
     FILTER_NEAREST,
@@ -93,6 +96,9 @@ typedef struct Font {
 } Font;
 
 extern Font *ui_font_create (void);
+extern void ui_font_destroy (Font *font);
+
+
 
 /*** TEXTBOX ***/
 

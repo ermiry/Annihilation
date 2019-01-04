@@ -52,7 +52,7 @@ int main (void) {
     running = true;
     while (running) {
         frameStart = SDL_GetTicks ();
-        
+
         // TODO: create a thread to handle events?
         input_handle (event);
 
