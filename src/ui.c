@@ -36,6 +36,8 @@ u8 ui_init (void) {
 
 #pragma region FONT 
 
+static u8 has_render_target_support = 0;
+
 /*** MISC ***/
 
 static int u8_charsize (const char *character) {
@@ -80,21 +82,21 @@ static u32 get_code_point_from_UTF8 (const char **c, u8 advancePtr) {
         if((unsigned char)*str <= 0x7F) retval = *str;
         else if((unsigned char)*str < 0xE0) {
             retval |= (unsigned char)(*str) << 8;
-            retval |= (unsigned char)(*(str+1));
+            retval |= (unsigned char)(*(str + 1));
             if (advancePtr) *c += 1;
         }
 
         else if((unsigned char)*str < 0xF0) {
             retval |= (unsigned char)(*str) << 16;
-            retval |= (unsigned char)(*(str+1)) << 8;
-            retval |= (unsigned char)(*(str+2));
+            retval |= (unsigned char)(*(str + 1)) << 8;
+            retval |= (unsigned char)(*(str + 2));
             if (advancePtr) *c += 2;
         }
         else {
             retval |= (unsigned char)(*str) << 24;
-            retval |= (unsigned char)(*(str+1)) << 16;
-            retval |= (unsigned char)(*(str+2)) << 8;
-            retval |= (unsigned char)(*(str+3));
+            retval |= (unsigned char)(*(str + 1)) << 16;
+            retval |= (unsigned char)(*(str + 2)) << 8;
+            retval |= (unsigned char)(*(str + 3));
             if (advancePtr) *c += 3;
         }
 
@@ -255,6 +257,80 @@ static GlyphData *glyph_data_pack (Font *font, u32 codepoint, u16 width,
                         last_glyph->rect.w, last_glyph->rect.h));
 }
 
+static u8 glyph_set_cache_level (Font* font, int cache_level, SDL_Texture *cache_texture) {
+
+    if (font && cache_level > 0) {
+        if (cache_level < font->glyph_cache_count + 1) {
+            if (cache_level == font->glyph_cache_count) {
+                font->glyph_cache_count++;
+
+                if (font->glyph_cache_count > font->glyph_cache_size) {
+                    font->glyph_cache = 
+                        (SDL_Texture **) realloc (font->glyph_cache, sizeof (font->glyph_cache_count));
+                    font->glyph_cache_size = font->glyph_cache_count;
+                }
+            }
+
+            font->glyph_cache[cache_level] = cache_texture;
+        }
+    }
+
+    return 1;   // error
+
+}
+
+static u8 glyph_upload_cache (Font *font, int cacheLevel, SDL_Surface *dataSurface) {
+
+    if (font && dataSurface) {
+        SDL_Texture *new_level = NULL;
+
+        if (has_render_target_support) {
+            char old_filter_mode[16];  
+            snprintf(old_filter_mode, 16, "%s", SDL_GetHint (SDL_HINT_RENDER_SCALE_QUALITY));
+
+            if (font->filter == FILTER_LINEAR) SDL_SetHint (SDL_HINT_RENDER_SCALE_QUALITY, "1");
+            else SDL_SetHint (SDL_HINT_RENDER_SCALE_QUALITY, "0");
+            
+            new_level = SDL_CreateTexture (main_renderer, dataSurface->format->format, 
+                SDL_TEXTUREACCESS_TARGET, dataSurface->w, dataSurface->h);;
+
+            SDL_SetTextureBlendMode (new_level, SDL_BLENDMODE_BLEND);
+
+            // reset filter mode for the temp texture
+            SDL_SetHint (SDL_HINT_RENDER_SCALE_QUALITY, "0");
+
+            u8 r, g, b, a;
+            SDL_Texture *temp = SDL_CreateTextureFromSurface (main_renderer, dataSurface);
+            SDL_SetTextureBlendMode (temp, SDL_BLENDMODE_NONE);
+            SDL_SetRenderTarget (main_renderer, new_level);
+
+            SDL_GetRenderDrawColor (main_renderer, &r, &g, &b, &a);
+            SDL_SetRenderDrawColor (main_renderer, 0, 0, 0, 0);
+            SDL_RenderClear (main_renderer);
+            SDL_SetRenderDrawColor (main_renderer, r, g, b, a);
+
+            SDL_RenderCopy (main_renderer, temp, NULL, NULL);
+            SDL_SetRenderTarget (main_renderer, NULL);
+
+            SDL_DestroyTexture (temp);
+
+            SDL_SetHint (SDL_HINT_RENDER_SCALE_QUALITY, old_filter_mode);
+        }
+
+        if (!glyph_set_cache_level (font, cacheLevel, new_level)) return 0;   // success
+        
+        #ifdef DEV
+        logMsg (stderr, ERROR, NO_TYPE, "Font cache ran out of packing space"
+        "and could not add another cache leve!");
+        #else
+        SDL_DestroyTexture (new_level);
+        #endif
+    }
+
+    return 1;   // error
+
+}
+
 /*** FONT ***/
 
 static void ui_font_init (Font *font) {
@@ -313,7 +389,7 @@ static u8 ui_font_load_from_ttf (Font *font, TTF_Font *ttf, RGBA_Color color) {
 
     SDL_RendererInfo info;
     SDL_GetRendererInfo (main_renderer, &info);
-    u8 has_render_target_support = (info.flags & SDL_RENDERER_TARGETTEXTURE);
+    has_render_target_support = (info.flags & SDL_RENDERER_TARGETTEXTURE);
 
     font->ttf_source = ttf;
 
@@ -355,24 +431,46 @@ static u8 ui_font_load_from_ttf (Font *font, TTF_Font *ttf, RGBA_Color color) {
 
         packed = (glyph_data_pack (font, get_code_point_from_UTF8 (&buff_ptr, 0),
             glyph_surf->w, surfaces[num_surfaces - 1]->w, surfaces[num_surfaces-1]->h) != NULL);
+        if (!packed) {
+            int i = num_surfaces - 1;
+            if (num_surfaces >= FONT_LOAD_MAX_SURFACES) {
+                // FIXME: better handle this error - also set a retval
+                #ifdef DEV
+                logMsg (stderr, ERROR, NO_TYPE, "Font cache error - Could not create"
+                "enough cache surfaces to fit all of the loading string!");
+                #else
+                logMsg (stderr, ERROR, NO_TYPE, "Failed to create font cache!");
+                #endif
+                SDL_FreeSurface (glyph_surf);
+                break;
+            }
 
-        // Try packing.  If it fails, create a new surface for the next cache level.
-        // packed = (FC_PackGlyphData(font, 
-        //     FC_GetCodepointFromUTF8(&buff_ptr, 0), glyph_surf->w, 
-        //     surfaces[num_surfaces-1]->w, surfaces[num_surfaces-1]->h) != NULL);
-        // if (!packed) {
+            // upload the current surface to the glyph cache
+            glyph_upload_cache (font, i, surfaces[i]);
+            SDL_FreeSurface (surfaces[i]);
+            font->last_glyph.cacheLevel = num_surfaces;
 
-        // }
+            surfaces[num_surfaces] = font_create_surface (w, h);
+            num_surfaces++;
+        }
+
+        if (packed || glyph_data_pack (font, get_code_point_from_UTF8 (&buff_ptr, 0),
+            glyph_surf->w, surfaces[num_surfaces - 1]->w, surfaces[num_surfaces - 1]->h) != NULL) {
+            SDL_SetSurfaceBlendMode (glyph_surf, SDL_BLENDMODE_NONE);
+            SDL_Rect srcRect = { 0, 0, glyph_surf->w, glyph_surf->h };
+            SDL_Rect destRect = font->last_glyph.rect;
+            SDL_BlitSurface (glyph_surf, &srcRect, surfaces[num_surfaces - 1], &destRect);
+        }
+
+        SDL_FreeSurface (glyph_surf);
     }
 
-    // FIXME:
-    // int i = num_surfaces-1;
-    // FC_UploadGlyphCache(font, i, surfaces[i]);
-    // SDL_FreeSurface(surfaces[i]);
-    // SDL_SetTextureBlendMode(font->glyph_cache[i], SDL_BLENDMODE_BLEND);
+    int n = num_surfaces - 1;
+    glyph_upload_cache (font, n, surfaces[n]);
+    SDL_FreeSurface (surfaces[n]);
+    SDL_SetTextureBlendMode (font->glyph_cache[n], SDL_BLENDMODE_BLEND);
 
-    // FIXME: retval
-    return 1;   // error
+    return 0;
 
 }
 
@@ -446,7 +544,7 @@ TextBox *ui_textBox_create (u32 x, u32 y, const char *text, u32 textColor, bool 
     if (textBox) {
         int text_width;
         int text_height;
-        SDL_Color color = {255, 255, 255, 0};
+        SDL_Color color = { 255, 255, 255, 0 };
         SDL_Surface *surface = TTF_RenderText_Solid(font, text, color);
         
         textBox->texture = SDL_CreateTextureFromSurface (main_renderer, surface);
