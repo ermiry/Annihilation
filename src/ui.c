@@ -16,25 +16,10 @@
 
 RGBA_Color RGBA_WHITE = { 255, 255, 255, 255 };
 
-static const char *fontPath = "./assets/fonts/Roboto-Regular.ttf";
-
-static TTF_Font *font = NULL;
-
-u8 ui_init (void) {
-
-    // init fonts
-    TTF_Init ();
-    font = TTF_OpenFont (fontPath, 32);
-    if (!font) {
-        logMsg (stderr, ERROR, NO_TYPE, "Failed to load font!");
-        return 1;
-    }
-
-    return 0;
-
-}
-
 #pragma region FONT 
+
+static const char *mainFontPath = "./assets/fonts/Roboto-Regular.ttf";
+Font *mainFont = NULL;
 
 static u8 has_render_target_support = 0;
 
@@ -259,8 +244,8 @@ static GlyphData *glyph_data_pack (Font *font, u32 codepoint, u16 width,
 
 static u8 glyph_set_cache_level (Font* font, int cache_level, SDL_Texture *cache_texture) {
 
-    if (font && cache_level > 0) {
-        if (cache_level < font->glyph_cache_count + 1) {
+    if (font && cache_level >= 0) {
+        if (cache_level <= font->glyph_cache_count + 1) {
             if (cache_level == font->glyph_cache_count) {
                 font->glyph_cache_count++;
 
@@ -272,6 +257,8 @@ static u8 glyph_set_cache_level (Font* font, int cache_level, SDL_Texture *cache
             }
 
             font->glyph_cache[cache_level] = cache_texture;
+
+            return 0;
         }
     }
 
@@ -320,8 +307,8 @@ static u8 glyph_upload_cache (Font *font, int cacheLevel, SDL_Surface *dataSurfa
         if (!glyph_set_cache_level (font, cacheLevel, new_level)) return 0;   // success
         
         #ifdef DEV
-        logMsg (stderr, ERROR, NO_TYPE, "Font cache ran out of packing space"
-        "and could not add another cache leve!");
+        logMsg (stderr, ERROR, NO_TYPE, "Font cache ran out of packing space "
+        "and could not add another cache level!");
         #else
         SDL_DestroyTexture (new_level);
         #endif
@@ -545,25 +532,22 @@ TextBox *ui_textBox_create (u32 x, u32 y, const char *text, u32 textColor, bool 
         int text_width;
         int text_height;
         SDL_Color color = { 255, 255, 255, 0 };
-        SDL_Surface *surface = TTF_RenderText_Solid(font, text, color);
-        
-        textBox->texture = SDL_CreateTextureFromSurface (main_renderer, surface);
-
-        text_width = surface->w;
-        text_height = surface->h;
+        // SDL_Surface *surface = TTF_RenderText_Solid (font, text, color);
+        // textBox->texture = SDL_CreateTextureFromSurface (main_renderer, surface);
+        // text_width = surface->w;
+        // text_height = surface->h;
 
         textBox->bgrect.x = x;
         textBox->bgrect.y = y;
         textBox->bgrect.w = text_width;
         textBox->bgrect.h = text_height;
 
-        SDL_FreeSurface(surface);
+        // SDL_FreeSurface (surface);
     }
 
     return textBox;
 
 }
-
 
 // extern void ui_textBox_destroy (TextBox *textbox);
 // extern void ui_textBox_setBorders (TextBox *textbox, u8 borderWidth, u32 borderColor);
@@ -572,3 +556,28 @@ TextBox *ui_textBox_create (u32 x, u32 y, const char *text, u32 textColor, bool 
 // extern void ui_textBox_draw (Console *console, TextBox *textbox);
 
 #pragma endregion
+
+/*** PUBLIC UI FUNCS ***/
+
+u8 ui_init (void) {
+
+    // init and load fonts
+    TTF_Init ();
+    mainFont = ui_font_create ();
+    if (!mainFont) {
+        #ifdef DEV
+        logMsg (stderr, ERROR, NO_TYPE, "Failed to allocate space for new font!");
+        #endif
+        return 1;
+    }
+
+    if (ui_font_load (mainFont, mainFontPath, DEFAULT_FONT_SIZE, RGBA_WHITE, TTF_STYLE_NORMAL)) {
+        #ifdef DEV
+        logMsg (stderr, ERROR, NO_TYPE, "Failed to load font and create font cache!");
+        #endif
+        return 1;
+    }
+
+    return 0;   // success
+
+}

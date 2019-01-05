@@ -98,8 +98,6 @@ typedef struct Font {
 extern Font *ui_font_create (void);
 extern void ui_font_destroy (Font *font);
 
-
-
 /*** TEXTBOX ***/
 
 typedef struct TextBox {
@@ -108,7 +106,7 @@ typedef struct TextBox {
     UIRect bgrect;
     u32 bgcolor;
 
-    u32 textColor;
+    RGBA_Color textColor;
     char *text;
     bool ispassword;
     char *pswd;
