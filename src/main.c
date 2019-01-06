@@ -23,8 +23,6 @@ void quit (void) {
 
 }
 
-TextBox *fpsText = NULL;
-
 int main (void) {
 
     srand ((unsigned) time (NULL));
@@ -47,8 +45,10 @@ int main (void) {
     u32 deltaTicks = 0;
     u32 fps = 0;
 
-    fpsText = ui_textBox_create (100, 100, RGBA_WHITE, "hola\nhola", 
+    #ifdef DEV
+    TextBox *fpsText = ui_textBox_create (100, 100, RGBA_WHITE, "hola\nhola", 
         ui_rgba_color_create (107, 78, 34, 255), NULL, false);
+    #endif
 
     running = true;
     while (running) {

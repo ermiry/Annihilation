@@ -120,16 +120,16 @@ static void collider_box_destroy (BoxCollider *box) { if (box) free (box); }
 
 #pragma region GAME OBJECTS
 
-GameObject **gameObjects;
-u32 max_gos;
-u32 curr_max_objs;
-u32 new_go_id;
+static GameObject **gameObjects;
+static u32 max_gos;
+static u32 curr_max_objs;
+static u32 new_go_id;
 
 static bool game_objects_realloc (void) {
 
     u32 new_max_gos = curr_max_objs * 2;
 
-    gameObjects = realloc (gameObjects, new_max_gos * sizeof (gameObjects));
+    gameObjects = realloc (gameObjects, new_max_gos * sizeof (GameObject *));
 
     if (gameObjects) {
         max_gos = new_max_gos;

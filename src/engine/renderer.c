@@ -1,23 +1,29 @@
 #include <SDL2/SDL.h>
 
 #include "game.h"
+#include "ui.h"
 
 SDL_Window *main_window = NULL;
 SDL_Renderer *main_renderer = NULL;
-
-// FIXME: better render the ui
-#include "ui.h"
-extern TextBox *fpsText;
 
 // TODO: render by layers
 void render (void) {
 
     SDL_RenderClear (main_renderer);
 
+    // render gameobjects
     if (game_manager->currState->render)
         game_manager->currState->render ();
 
-    ui_textbox_draw (fpsText, 100, 100);
+    // render game UI
+    for (u32 i = 0; i < curr_max_ui_elements; i++) {
+        switch (ui_elements[i]->type) {
+            case UI_TEXTBOX: ui_textbox_draw ((TextBox *) ui_elements[i]->element, 100, 100); break;
+            case UI_BUTTON: break;
+
+            default: break;
+        }
+    }
 
     SDL_RenderPresent (main_renderer);
 

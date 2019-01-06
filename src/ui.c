@@ -18,9 +18,9 @@ RGBA_Color RGBA_NO_COLOR = { 0, 0, 0, 0 };
 RGBA_Color RGBA_WHITE = { 255, 255, 255, 255 };
 RGBA_Color RGBA_BLACK = { 0, 0, 0, 255 };
 
-/*** UI ELEMENTS ***/
+/*** BASIC UI ELEMENTS ***/
 
-#pragma region UI elements
+#pragma region BASIC UI ELEMENTS
 
 static inline UIRect ui_rect_create (u32 x, u32 y, u32 w, u32 h) {
 
@@ -45,6 +45,117 @@ RGBA_Color ui_rgba_color_create (u8 r, u8 g, u8 b, u8 a) {
 
     RGBA_Color retval = { r, g, b, a };
     return retval;
+
+}
+
+#pragma endregion
+
+/*** UI ELEMENTS ***/
+
+#pragma region UI ELEMENTS
+
+UIElement **ui_elements = NULL;
+static u32 max_ui_elements;
+u32 curr_max_ui_elements;
+static u32 new_ui_element_id;
+
+static u8 ui_elements_realloc (void) {
+
+    u32 new_max_ui_elements = curr_max_ui_elements * 2;
+
+    ui_elements = realloc (ui_elements, new_max_ui_elements * sizeof (UIElement *));
+    if (ui_elements) {
+        max_ui_elements = new_max_ui_elements;
+        return 0;
+    }
+
+    return 1;
+
+}
+
+// init our ui elements structures
+static u8 ui_elements_init (void) {
+
+    ui_elements = (UIElement **) calloc (DEFAULT_MAX_UI_ELEMENTS, sizeof (UIElement *));
+    if (ui_elements) {
+        for (u32 i = 0; i < DEFAULT_MAX_UI_ELEMENTS; i++) ui_elements[i] = NULL;
+
+        max_ui_elements = DEFAULT_MAX_UI_ELEMENTS;
+        curr_max_ui_elements = 0;
+        new_ui_element_id = 0;
+
+        return 0;
+    }
+
+    return 1;
+
+}
+
+static i32 ui_element_get_free_spot (void) {
+
+    for (u32 i = 0; i < curr_max_ui_elements; i++) 
+        if (ui_elements[i]->id == -1)
+            return i;
+
+    return -1;
+
+}
+
+// ui element constructor
+static UIElement *ui_element_new (UIElementType type) {
+
+    UIElement *new_element = NULL;
+
+    // first check if we have a reusable ui element
+    i32 spot = ui_element_get_free_spot ();
+
+    if (spot >= 0) {
+        new_element = ui_elements[spot];
+        new_element->id = spot;
+        new_element->element = NULL;
+    }
+
+    else {
+        if (new_ui_element_id >= max_ui_elements) ui_elements_realloc ();
+
+        new_element = (UIElement *) malloc (sizeof (UIElement));
+        if (new_element) {
+            new_element->id = new_ui_element_id;
+            new_element->element = NULL;
+            ui_elements[new_element->id] = new_element;
+            new_ui_element_id++;
+            curr_max_ui_elements++;
+        }
+    }
+
+    return new_element;
+
+}
+
+void ui_textBox_destroy (TextBox *textbox);
+
+// mark as inactive or reusable the ui element
+static void ui_element_destroy (UIElement *ui_element) {
+
+    if (ui_element) {
+        ui_element->id = -1;
+        
+        switch (ui_element->type) {
+            case UI_TEXTBOX: ui_textBox_destroy ((TextBox *) ui_element->element); break;
+            case UI_BUTTON: break;
+
+            default: break;
+        }
+    }
+
+}
+
+static void ui_element_delete (UIElement *ui_element) {
+
+    if (ui_element) {
+        ui_element_destroy (ui_element);
+        free (ui_element);
+    }
 
 }
 
@@ -610,39 +721,46 @@ u8 ui_font_load (Font *font, const char *filename, u32 pointSize,
 TextBox *ui_textBox_create (u32 x, u32 y, RGBA_Color bgColor,
     const char *text, RGBA_Color textColor, Font *font, bool isPassword) {
 
-    TextBox *textBox = (TextBox *) malloc (sizeof (TextBox));
-    if (textBox) {
-        textBox->texture = NULL;
-        textBox->font = font ? font : mainFont;
+    UIElement *ui_element = ui_element_new (UI_TEXTBOX);
+    if (ui_element) {
+        TextBox *textBox = (TextBox *) malloc (sizeof (TextBox));
+        if (textBox) {
+            textBox->texture = NULL;
+            textBox->font = font ? font : mainFont;
 
-        textBox->bgrect.x = x;
-        textBox->bgrect.y = y;
-        textBox->bgrect.w = textBox->bgrect.h = 0;
-        textBox->bgcolor = bgColor;
+            textBox->bgrect.x = x;
+            textBox->bgrect.y = y;
+            textBox->bgrect.w = textBox->bgrect.h = 0;
+            textBox->bgcolor = bgColor;
 
-        textBox->textColor = textColor;
+            textBox->textColor = textColor;
 
-        textBox->ispassword = isPassword;
+            textBox->ispassword = isPassword;
 
-        if (text) {
-            if (isPassword) {
-                textBox->pswd = (char *) calloc (strlen (text) + 1, sizeof (char));
-                strcpy (textBox->pswd, text);
-                u32 len = strlen (text);
-                for (u8 i = 0; i < len; i++) textBox->text[i] = '*';
+            if (text) {
+                if (isPassword) {
+                    textBox->pswd = (char *) calloc (strlen (text) + 1, sizeof (char));
+                    strcpy (textBox->pswd, text);
+                    u32 len = strlen (text);
+                    for (u8 i = 0; i < len; i++) textBox->text[i] = '*';
+                }
+
+                else {
+                    textBox->text = (char *) calloc (strlen (text) + 1, sizeof (char));
+                    strcpy (textBox->text, text);
+                    textBox->pswd = NULL;
+                }
             }
 
-            else {
-                textBox->text = (char *) calloc (strlen (text) + 1, sizeof (char));
-                strcpy (textBox->text, text);
-                textBox->pswd = NULL;
-            }
+            else textBox->text = textBox->pswd = NULL;
+
+            ui_element->element = textBox;
+
+            return textBox;
         }
-
-        else textBox->text = textBox->pswd = NULL;
     }
 
-    return textBox;
+    return NULL;
 
 }
 
@@ -755,6 +873,9 @@ void ui_textbox_draw (TextBox *textbox, u32 x, u32 y) {
 // init main ui elements
 u8 ui_init (void) {
 
+    // init ui elements
+    ui_elements_init ();
+
     // init and load fonts
     TTF_Init ();
     mainFont = ui_font_create ();
@@ -778,6 +899,10 @@ u8 ui_init (void) {
 
 // destroy main ui elements
 u8 ui_destroy (void) {
+
+    // ui elements
+    for (u32 i = 0; i < curr_max_ui_elements; i++)
+        ui_element_delete (ui_elements[i]);
 
     // fonts
     ui_font_destroy (mainFont);

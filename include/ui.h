@@ -29,6 +29,26 @@ extern RGBA_Color RGBA_BLACK;
 
 /*** UI ELEMENTS ***/
 
+typedef enum UIElementType {
+
+    UI_TEXTBOX,
+    UI_BUTTON,
+
+} UIElementType;
+
+#define DEFAULT_MAX_UI_ELEMENTS     10
+
+typedef struct UIElement {
+
+    i32 id;
+    UIElementType type;
+    void *element;
+
+} UIElement;
+
+extern UIElement **ui_elements;
+extern u32 curr_max_ui_elements;;
+
 typedef SDL_Rect UIRect;
 
 extern RGBA_Color ui_rgba_color_create (u8 r, u8 g, u8 b, u8 a);
