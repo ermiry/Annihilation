@@ -112,6 +112,7 @@ static UIElement *ui_element_new (UIElementType type) {
     if (spot >= 0) {
         new_element = ui_elements[spot];
         new_element->id = spot;
+        new_element->type = type;
         new_element->element = NULL;
     }
 
@@ -121,6 +122,7 @@ static UIElement *ui_element_new (UIElementType type) {
         new_element = (UIElement *) malloc (sizeof (UIElement));
         if (new_element) {
             new_element->id = new_ui_element_id;
+            new_element->type = type;
             new_element->element = NULL;
             ui_elements[new_element->id] = new_element;
             new_ui_element_id++;
@@ -712,13 +714,72 @@ u8 ui_font_load (Font *font, const char *filename, u32 pointSize,
 
 #pragma region TEXTBOX
 
-// mfor some optimization??
-// TODO: maybe create a static texture with a fix texture at a time
-// and a volitile one which will rely in the font cache for creating variable text each time
+// TODO: handle input fields like in blackrock
 
-// TODO: add seters for all the textbox elements
+void ui_textBox_set_text (TextBox *textBox, const char *newText) {
 
-TextBox *ui_textBox_create (u32 x, u32 y, RGBA_Color bgColor,
+    if (textBox) {
+        if (textBox->text) free (textBox->text);
+        if (textBox->pswd) free (textBox->pswd);
+
+        if (newText) {
+            if (textBox->ispassword) {
+                textBox->pswd = (char *) calloc (strlen (newText) + 1, sizeof (char));
+                strcpy (textBox->pswd, newText);
+                u32 len = strlen (newText);
+                for (u8 i = 0; i < len; i++) textBox->text[i] = '*';
+            }
+
+            else {
+                textBox->text = (char *) calloc (strlen (newText) + 1, sizeof (char));
+                strcpy (textBox->text, newText);
+                textBox->pswd = NULL;
+            }
+        }
+
+        else textBox->text = textBox->pswd = NULL;
+
+        if (!textBox->isVolatile) {
+            if (textBox->texture) SDL_DestroyTexture (textBox->texture);
+            SDL_Surface *surface = TTF_RenderText_Solid (textBox->font->ttf_source, newText, textBox->textColor);
+            textBox->texture = SDL_CreateTextureFromSurface (main_renderer, surface);
+       
+            textBox->bgrect.w = surface->w;
+            textBox->bgrect.h = surface->h;
+
+            SDL_FreeSurface(surface);
+        }
+
+    }
+
+}
+
+void ui_textBox_set_text_color (TextBox *textBox, RGBA_Color newColor) {
+
+    if (textBox) {
+        textBox->textColor = newColor;
+
+        if (!textBox->isVolatile) {
+            SDL_Surface *surface = TTF_RenderText_Solid (textBox->font->ttf_source, 
+                textBox->text, textBox->textColor);
+            textBox->texture = SDL_CreateTextureFromSurface (main_renderer, surface);
+    
+            textBox->bgrect.w = surface->w;
+            textBox->bgrect.h = surface->h;
+
+            SDL_FreeSurface(surface);
+        }
+    }
+
+}
+
+void ui_textBox_set_bg_color (TextBox *textBox, RGBA_Color newColor) {
+
+    if (textBox) textBox->bgcolor = newColor;
+
+}
+
+static TextBox *ui_textBox_new (u32 x, u32 y, RGBA_Color bgColor,
     const char *text, RGBA_Color textColor, Font *font, bool isPassword) {
 
     UIElement *ui_element = ui_element_new (UI_TEXTBOX);
@@ -764,11 +825,48 @@ TextBox *ui_textBox_create (u32 x, u32 y, RGBA_Color bgColor,
 
 }
 
+// TODO: generate a smoother text like with the volatile ones
+// TODO: handle password logic
+TextBox *ui_textBox_create_static (u32 x, u32 y, RGBA_Color bgColor,
+    const char *text, RGBA_Color textColor, Font *font, bool isPassword) {
+
+    TextBox *textBox = ui_textBox_new (x, y, bgColor, text, textColor, font, isPassword);
+    if (textBox) {
+        SDL_Surface *surface = TTF_RenderText_Solid (textBox->font->ttf_source, text, textColor);
+        textBox->texture = SDL_CreateTextureFromSurface (main_renderer, surface);
+
+        textBox->bgrect.x = x;
+        textBox->bgrect.y = y;        
+        textBox->bgrect.w = surface->w;
+        textBox->bgrect.h = surface->h;
+
+        SDL_FreeSurface(surface);
+
+        textBox->isVolatile = false;
+    }
+
+    return textBox;
+
+}
+
+TextBox *ui_textBox_create_volatile (u32 x, u32 y, RGBA_Color bgColor,
+    const char *text, RGBA_Color textColor, Font *font, bool isPassword) {
+
+    TextBox *textBox = ui_textBox_new (x, y, bgColor, text, textColor, font, isPassword);
+    if (textBox) {
+        textBox->texture = NULL;
+        textBox->isVolatile = true;
+    }
+
+    return textBox;
+
+}
+
 void ui_textBox_destroy (TextBox *textbox) {
 
     if (textbox) {
         textbox->font = NULL;
-        if (textbox->font) SDL_DestroyTexture (textbox->texture);
+        if (textbox->texture) SDL_DestroyTexture (textbox->texture);
         if (textbox->text) free (textbox->text);
         if (textbox->pswd) free (textbox->pswd);
 
@@ -777,10 +875,7 @@ void ui_textBox_destroy (TextBox *textbox) {
 
 }
 
-// FIXME: create a function to just render the textbox and another to change the text 
-// we don't want to be generating surfaces each time... that is the point of all of these!!
-
-// TODO: move this form here!
+// FIXME: move this form here!
 // FC_Default_RenderCallback
 UIRect ui_rect_render (SDL_Texture *srcTexture, UIRect *srcRect, u32 x, u32 y) {
 
@@ -800,26 +895,25 @@ UIRect ui_rect_render (SDL_Texture *srcTexture, UIRect *srcRect, u32 x, u32 y) {
 
 }
 
-// TODO: we need a better way for selecting font sizes!!
 // FIXME: handle text color change
-// TODO: handle flip
 // FIXME: handle password logic
 // TODO: maybe add scale
+// TODO: we need a better way for selecting font sizes!!
 // this was FC_RenderLeft...
-// FIXME: move x and y values inside the textbox! -> can they go inside the src rect?
-void ui_textbox_draw (TextBox *textbox, u32 x, u32 y) {
+void ui_textbox_draw (TextBox *textbox) {
 
     if (textbox) {
         const char *c = textbox->text;
 
         // TODO: do we want this inside the textbox?
-        UIRect srcRect, destRect, dirtyRect = ui_rect_create (x, y, 0, 0);
+        UIRect srcRect, destRect, 
+            dirtyRect = ui_rect_create (textbox->bgrect.x, textbox->bgrect.y, 0, 0);
 
         GlyphData glyph;
         u32 codepoint;
 
-        u32 destX = x;
-        u32 destY = y;
+        u32 destX = textbox->bgrect.x;
+        u32 destY = textbox->bgrect.y;
         float destH, destLineSpacing, destLetterSpacing;
 
         // TODO: add scale here!
@@ -827,7 +921,7 @@ void ui_textbox_draw (TextBox *textbox, u32 x, u32 y) {
         destLineSpacing = textbox->font->lineSpacing;
         destLetterSpacing = textbox->font->letterSpacing;
 
-        int newLineX = x;
+        int newLineX = textbox->bgrect.x;
 
         for (; *c != '\0'; c++) {
             if (*c == '\n') {
@@ -862,9 +956,6 @@ void ui_textbox_draw (TextBox *textbox, u32 x, u32 y) {
     }
 
 }
-
-// extern void ui_textBox_update_text (TextBox *textbox, const char *text);
-// extern void ui_textbox_delete_text (TextBox *textbox);
 
 #pragma endregion
 

@@ -16,9 +16,15 @@ void render (void) {
         game_manager->currState->render ();
 
     // render game UI
+    TextBox *textBox = NULL;
     for (u32 i = 0; i < curr_max_ui_elements; i++) {
         switch (ui_elements[i]->type) {
-            case UI_TEXTBOX: ui_textbox_draw ((TextBox *) ui_elements[i]->element, 100, 100); break;
+            case UI_TEXTBOX: 
+                textBox = (TextBox *) ui_elements[i]->element;
+                if (textBox->isVolatile) ui_textbox_draw (textBox);
+                else SDL_RenderCopy (main_renderer, textBox->texture, NULL, &textBox->bgrect);
+
+                break;
             case UI_BUTTON: break;
 
             default: break;

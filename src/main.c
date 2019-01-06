@@ -12,6 +12,8 @@
 #include "engine/renderer.h"
 #include "engine/input.h"
 
+#include "utils/myUtils.h"
+
 bool running = false;
 bool inGame = false;
 bool wasInGame = false;
@@ -45,9 +47,15 @@ int main (void) {
     u32 deltaTicks = 0;
     u32 fps = 0;
 
+    // #ifdef DEV
+    TextBox *static_text = ui_textBox_create_static (100, 100, ui_rgba_color_create (100, 45, 67, 255),
+        "this is a static text!", RGBA_WHITE, NULL, false);
+    TextBox *volatile_text = ui_textBox_create_volatile (200, 200, ui_rgba_color_create (100, 45, 67, 255),
+        "this is a volatile text!", RGBA_WHITE, NULL, false);
+    // #endif
+
     #ifdef DEV
-    TextBox *fpsText = ui_textBox_create (100, 100, RGBA_WHITE, "hola\nhola", 
-        ui_rgba_color_create (107, 78, 34, 255), NULL, false);
+    TextBox *fpsText = ui_textBox_create_volatile (500, 500, RGBA_NO_COLOR, "Fps: 0", RGBA_WHITE, NULL, false);
     #endif
 
     running = true;
@@ -72,6 +80,9 @@ int main (void) {
         fps++;
         if (deltaTicks > 1000) {
             // printf ("fps: %i\n", fps);
+            #ifdef DEV
+            ui_textBox_set_text (fpsText, createString ("FPS: %i", fps));
+            #endif
             deltaTicks = 0;
             fps = 0;
         }
