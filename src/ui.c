@@ -16,6 +16,31 @@
 
 RGBA_Color RGBA_WHITE = { 255, 255, 255, 255 };
 
+/*** UI ELEMENTS ***/
+
+#pragma region UI elements
+
+static inline UIRect ui_rect_create (u32 x, u32 y, u32 w, u32 h) {
+
+    UIRect ret = { x, y, w, h };
+    return ret;
+
+}
+
+static inline UIRect ui_rect_union (UIRect a, UIRect b) {
+
+    u32 x1 = MIN (a.x, b.x);
+    u32 y1 = MIN (a.y, b.y);
+    u32 x2 = MAX (a.x + a.w, b.x + b.w);
+    u32 y2 = MAX (a.y + a.h, b.y + b.h);
+
+    UIRect retval = { x1, y1, MAX (0, x2 - x1), MAX (0, y2 - y1) };
+    return retval;
+
+}
+
+#pragma endregion
+
 #pragma region FONT 
 
 static const char *mainFontPath = "./assets/fonts/Roboto-Regular.ttf";
@@ -163,6 +188,21 @@ static void font_map_destroy (FontMap *fontMap) {
 
 }
 
+static GlyphData *font_map_find (FontMap *fontMap, u32 codepoint) {
+
+    if (fontMap) {
+        FontMapNode *node = NULL;
+        u32 index = codepoint % fontMap->n_buckets;
+
+        for (node = fontMap->buckets[index]; node != NULL; node = node->next)
+            if (node->key == codepoint)
+                return &node->value;
+    }
+
+    return NULL;    
+
+}
+
 static GlyphData *font_map_insert (FontMap *map, u32 codepoint, GlyphData glyph) {
 
     if (map) {
@@ -195,7 +235,6 @@ static GlyphData *font_map_insert (FontMap *map, u32 codepoint, GlyphData glyph)
 }
 
 /*** GLYPH ***/
-
 static GlyphData glyph_data_make (int cacheLevel, i16 x, i16 y, u16 w, u16 h) {
 
     GlyphData gd;
@@ -242,6 +281,21 @@ static GlyphData *glyph_data_pack (Font *font, u32 codepoint, u16 width,
                         last_glyph->rect.w, last_glyph->rect.h));
 }
 
+static u8 glyph_get_data (Font *font, GlyphData *result, u32 codepoint) {
+
+    GlyphData *g = font_map_find (font->glyphs, codepoint);
+    if (g) {
+        *result = *g;
+        return 0;   // success
+    } 
+
+    // TODO: maybe add the new glyph data to the font cache? check draft code
+
+    return 1;   // error
+
+}
+
+
 static u8 glyph_set_cache_level (Font* font, int cache_level, SDL_Texture *cache_texture) {
 
     if (font && cache_level >= 0) {
@@ -263,6 +317,13 @@ static u8 glyph_set_cache_level (Font* font, int cache_level, SDL_Texture *cache
     }
 
     return 1;   // error
+
+}
+
+static inline SDL_Texture *glyph_get_cache_level (Font *font, int cacheLevel) {
+
+    if (font && cacheLevel >= 0 && cacheLevel >= font->glyph_cache_count)
+        return font->glyph_cache[cacheLevel];
 
 }
 
@@ -366,8 +427,28 @@ Font *ui_font_create (void) {
 
 }
 
-// TODO:
-void ui_font_destroy (Font *font) {}
+void ui_font_destroy (Font *font) {
+
+    if (font) {
+        if (font->owns_ttf_source) TTF_CloseFont (font->ttf_source);
+
+        font_map_destroy (font->glyphs);
+
+        // delete glyph cache
+        if (font->glyph_cache) {
+            for (u32 i = 0; i < font->glyph_cache_count; i++) 
+                if (font->glyph_cache[i])
+                    SDL_DestroyTexture (font->glyph_cache[i]);
+
+            free (font->glyph_cache);
+        }
+
+        if (font->loading_string) free (font->loading_string);
+
+        free (font);
+    }
+
+}
 
 static u8 ui_font_load_from_ttf (Font *font, TTF_Font *ttf, RGBA_Color color) {
 
@@ -511,43 +592,119 @@ u8 ui_font_load (Font *font, const char *filename, u32 pointSize,
 
 #pragma region TEXTBOX
 
-// extern TextBox *ui_textBox_create (u8 x, u8 y, u8 w, u8 h, u32 bgcolor, 
-//     const char *text, bool password, u32 textColor);
+// TODO: add seters for all the textbox elements
 
-// SDL_Texture *texture;
-// UIRect *bgrect;
-// u32 bgcolor;
-
-// u32 textColor;
-// char *text;
-// bool ispassword;
-// char *pswd;
-
-// FIXME: handle colors as rgba
+// TODO: add bg color
 // FIXME: handle password logic
-TextBox *ui_textBox_create (u32 x, u32 y, const char *text, u32 textColor, bool isPassword) {
+TextBox *ui_textBox_create (u32 x, u32 y, const char *text, RGBA_Color textColor, Font *font,
+    bool isPassword) {
 
     TextBox *textBox = (TextBox *) malloc (sizeof (TextBox));
     if (textBox) {
-        int text_width;
-        int text_height;
-        SDL_Color color = { 255, 255, 255, 0 };
-        // SDL_Surface *surface = TTF_RenderText_Solid (font, text, color);
-        // textBox->texture = SDL_CreateTextureFromSurface (main_renderer, surface);
-        // text_width = surface->w;
-        // text_height = surface->h;
+        textBox->texture = NULL;
+        textBox->font = font;
 
         textBox->bgrect.x = x;
         textBox->bgrect.y = y;
-        textBox->bgrect.w = text_width;
-        textBox->bgrect.h = text_height;
+        textBox->bgrect.w = textBox->bgrect.h = 0;
 
-        // SDL_FreeSurface (surface);
+        textBox->textColor = textColor;
+        if (text) {
+            textBox->text = (char *) calloc (strlen (text) + 1, sizeof (char));
+            strcpy (textBox->text, text);
+        }
+
+        textBox->ispassword = isPassword;
+        textBox->pswd = NULL;
     }
 
     return textBox;
 
 }
+
+// FIXME: create a function to just render the textbox and another to change the text 
+// we don't want to be generating surfaces each time... that is the point of all of these!!
+
+// FC_Default_RenderCallback
+UIRect ui_rect_render (SDL_Texture *srcTexture, UIRect *srcRect, u32 x, u32 y) {
+
+    UIRect retval;
+
+    SDL_RendererFlip flip = SDL_FLIP_NONE;
+    UIRect r = *srcRect;
+    UIRect dr = { x, y, r.w, r.h };
+    SDL_RenderCopyEx (main_renderer, srcTexture, &r, &dr, 0, NULL, flip);
+
+    retval.x = x;
+    retval.y = y;
+    retval.w = srcRect->w;
+    retval.h = srcRect->h;
+
+    return retval;
+
+}
+
+// TODO: handle flip
+// FIXME: handle password logic
+// TODO: maybe add scale
+// this was FC_RenderLeft...
+// FIXME: movw x and y values inside the textbox! -> can they go inside the src rect?
+void ui_textbox_draw (TextBox *textbox, u32 x, u32 y) {
+
+    if (textbox) {
+        const char *c = textbox->text;
+
+        // TODO: do we want this inside the textbox?
+        UIRect srcRect, destRect, dirtyRect = ui_rect_create (x, y, 0, 0);
+
+        GlyphData glyph;
+        u32 codepoint;
+
+        u32 destX = x;
+        u32 destY = y;
+        float destH, destLineSpacing, destLetterSpacing;
+
+        // TODO: add scale here!
+        destH = textbox->font->height;
+        destLineSpacing = textbox->font->lineSpacing;
+        destLetterSpacing = textbox->font->letterSpacing;
+
+        int newLineX = x;
+
+        for (; *c != '\0'; c++) {
+            if (*c == '\n') {
+                destX = newLineX;
+                destY += destH + destLineSpacing;
+                continue;
+            }
+
+            codepoint = get_code_point_from_UTF8 (&c, 1);
+            if (glyph_get_data (textbox->font, &glyph, codepoint)) {
+                // FIXME: handle bas caharcters
+            }
+
+            if (codepoint == ' ') {
+                destX += glyph.rect.w + destLetterSpacing;
+                continue;
+            }
+
+            srcRect = glyph.rect;
+
+            destRect = ui_rect_render (glyph_get_cache_level (textbox->font, glyph.cacheLevel),
+                &srcRect, destX, destY);
+
+            if (dirtyRect.w == 0 || dirtyRect.h == 0) dirtyRect = destRect;
+            else dirtyRect = ui_rect_union (dirtyRect, destRect);
+
+            destX += glyph.rect.w + destLetterSpacing;
+
+            // FIXME:
+            // return dirtyRect;
+        }
+    }
+
+}
+
 
 // extern void ui_textBox_destroy (TextBox *textbox);
 // extern void ui_textBox_setBorders (TextBox *textbox, u8 borderWidth, u32 borderColor);

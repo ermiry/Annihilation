@@ -22,4 +22,9 @@ typedef unsigned char asciiChar;
 
 #define THREAD_OK   0
 
+/*** MISC ***/
+
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
 #endif

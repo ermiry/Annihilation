@@ -102,6 +102,7 @@ extern void ui_font_destroy (Font *font);
 
 typedef struct TextBox {
 
+    Font *font;
     SDL_Texture *texture;
     UIRect bgrect;
     u32 bgcolor;
@@ -117,7 +118,10 @@ typedef struct TextBox {
 
 } TextBox;
 
-extern TextBox *ui_textBox_create (u32 x, u32 y, const char *text, u32 textColor, bool isPassword);
+extern TextBox *ui_textBox_create (u32 x, u32 y, const char *text, RGBA_Color textColor, Font *font,
+    bool isPassword);
+
+// extern TextBox *ui_textBox_create (u32 x, u32 y, const char *text, u32 textColor, bool isPassword);
 
 // extern TextBox *ui_textBox_create (u8 x, u8 y, u8 w, u8 h, u32 bgcolor, 
 //     const char *text, bool password, u32 textColor);
