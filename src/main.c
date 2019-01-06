@@ -48,6 +48,7 @@ int main (void) {
     u32 fps = 0;
 
     // fpsText = ui_textBox_create (100, 100, "Hola", 0, false);
+    fpsText = ui_textBox_create (100, 100, "hola\nhola", RGBA_WHITE, NULL, false);
 
     running = true;
     while (running) {

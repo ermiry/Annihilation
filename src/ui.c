@@ -322,7 +322,7 @@ static u8 glyph_set_cache_level (Font* font, int cache_level, SDL_Texture *cache
 
 static inline SDL_Texture *glyph_get_cache_level (Font *font, int cacheLevel) {
 
-    if (font && cacheLevel >= 0 && cacheLevel >= font->glyph_cache_count)
+    if (font && cacheLevel >= 0 && cacheLevel <= font->glyph_cache_count)
         return font->glyph_cache[cacheLevel];
 
 }
@@ -602,7 +602,7 @@ TextBox *ui_textBox_create (u32 x, u32 y, const char *text, RGBA_Color textColor
     TextBox *textBox = (TextBox *) malloc (sizeof (TextBox));
     if (textBox) {
         textBox->texture = NULL;
-        textBox->font = font;
+        textBox->font = font ? font : mainFont;
 
         textBox->bgrect.x = x;
         textBox->bgrect.y = y;
@@ -613,6 +613,8 @@ TextBox *ui_textBox_create (u32 x, u32 y, const char *text, RGBA_Color textColor
             textBox->text = (char *) calloc (strlen (text) + 1, sizeof (char));
             strcpy (textBox->text, text);
         }
+
+        else textBox->text = NULL;
 
         textBox->ispassword = isPassword;
         textBox->pswd = NULL;
@@ -648,7 +650,7 @@ UIRect ui_rect_render (SDL_Texture *srcTexture, UIRect *srcRect, u32 x, u32 y) {
 // FIXME: handle password logic
 // TODO: maybe add scale
 // this was FC_RenderLeft...
-// FIXME: movw x and y values inside the textbox! -> can they go inside the src rect?
+// FIXME: move x and y values inside the textbox! -> can they go inside the src rect?
 void ui_textbox_draw (TextBox *textbox, u32 x, u32 y) {
 
     if (textbox) {
@@ -697,10 +699,10 @@ void ui_textbox_draw (TextBox *textbox, u32 x, u32 y) {
             else dirtyRect = ui_rect_union (dirtyRect, destRect);
 
             destX += glyph.rect.w + destLetterSpacing;
-
-            // FIXME:
-            // return dirtyRect;
         }
+
+        // FIXME:
+        // return dirtyRect;
     }
 
 }

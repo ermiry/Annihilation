@@ -19,11 +19,15 @@
 
 #define HEX_SILVER          0xBDC3C7FF
 
-/*** UI ***/
-
-typedef SDL_Rect UIRect;
+/*** COMMON RGBA COLORS ***/
 
 typedef SDL_Color RGBA_Color;
+
+extern RGBA_Color RGBA_WHITE;
+
+/*** UI ELEMENTS ***/
+
+typedef SDL_Rect UIRect;
 
 /*** FONTS/TEXT ***/
 
@@ -120,6 +124,7 @@ typedef struct TextBox {
 
 extern TextBox *ui_textBox_create (u32 x, u32 y, const char *text, RGBA_Color textColor, Font *font,
     bool isPassword);
+extern void ui_textbox_draw (TextBox *textbox, u32 x, u32 y);
 
 // extern TextBox *ui_textBox_create (u32 x, u32 y, const char *text, u32 textColor, bool isPassword);
 
