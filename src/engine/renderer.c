@@ -17,7 +17,6 @@ void render (void) {
     if (game_manager->currState->render)
         game_manager->currState->render ();
 
-    // SDL_RenderCopy (main_renderer, fpsText->texture, NULL, &fpsText->bgrect);
     ui_textbox_draw (fpsText, 100, 100);
 
     SDL_RenderPresent (main_renderer);

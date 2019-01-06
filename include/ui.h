@@ -23,11 +23,15 @@
 
 typedef SDL_Color RGBA_Color;
 
+extern RGBA_Color RGBA_NO_COLOR;
 extern RGBA_Color RGBA_WHITE;
+extern RGBA_Color RGBA_BLACK;
 
 /*** UI ELEMENTS ***/
 
 typedef SDL_Rect UIRect;
+
+extern RGBA_Color ui_rgba_color_create (u8 r, u8 g, u8 b, u8 a);
 
 /*** FONTS/TEXT ***/
 
@@ -37,7 +41,7 @@ typedef SDL_Rect UIRect;
 
 typedef SDL_Texture FontImage;
 
-#define DEFAULT_FONT_SIZE       24
+#define DEFAULT_FONT_SIZE           50
 
 #define TTF_STYLE_OUTLINE	        16
 #define FONT_LOAD_MAX_SURFACES      10
@@ -104,42 +108,35 @@ extern void ui_font_destroy (Font *font);
 
 /*** TEXTBOX ***/
 
+// TODO: handle input logic
 typedef struct TextBox {
 
     Font *font;
     SDL_Texture *texture;
     UIRect bgrect;
-    u32 bgcolor;
+    RGBA_Color bgcolor;
 
     RGBA_Color textColor;
     char *text;
     bool ispassword;
     char *pswd;
 
-    // TODO:
-    // u8 borderWidth;
-    // u32 borderColor;
-
 } TextBox;
 
-extern TextBox *ui_textBox_create (u32 x, u32 y, const char *text, RGBA_Color textColor, Font *font,
-    bool isPassword);
+extern TextBox *ui_textBox_create (u32 x, u32 y, RGBA_Color bgColor,
+    const char *text, RGBA_Color textColor, Font *font, bool isPassword);
+extern void ui_textBox_destroy (TextBox *textbox);
+
 extern void ui_textbox_draw (TextBox *textbox, u32 x, u32 y);
 
-// extern TextBox *ui_textBox_create (u32 x, u32 y, const char *text, u32 textColor, bool isPassword);
-
-// extern TextBox *ui_textBox_create (u8 x, u8 y, u8 w, u8 h, u32 bgcolor, 
-//     const char *text, bool password, u32 textColor);
-// extern void ui_textBox_destroy (TextBox *textbox);
-// extern void ui_textBox_setBorders (TextBox *textbox, u8 borderWidth, u32 borderColor);
 // extern void ui_textBox_update_text (TextBox *textbox, const char *text);
 // extern void ui_textbox_delete_text (TextBox *textbox);
-// extern void ui_textBox_draw (Console *console, TextBox *textbox);
 
 #pragma endregion
 
 /*** PUBLIC UI FUNCS ***/
 
 extern u8 ui_init (void);
+extern u8 ui_destroy (void);
 
 #endif

@@ -47,8 +47,8 @@ int main (void) {
     u32 deltaTicks = 0;
     u32 fps = 0;
 
-    // fpsText = ui_textBox_create (100, 100, "Hola", 0, false);
-    fpsText = ui_textBox_create (100, 100, "hola\nhola", RGBA_WHITE, NULL, false);
+    fpsText = ui_textBox_create (100, 100, RGBA_WHITE, "hola\nhola", 
+        ui_rgba_color_create (107, 78, 34, 255), NULL, false);
 
     running = true;
     while (running) {
@@ -80,6 +80,7 @@ int main (void) {
 
     // FIXME: i dont want this here!
     game_cleanUp ();
+    ui_destroy ();
     video_destroy_main ();
     SDL_Quit ();
 

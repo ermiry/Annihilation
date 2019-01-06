@@ -14,7 +14,9 @@
 
 /*** COMMON RGBA COLORS ***/
 
+RGBA_Color RGBA_NO_COLOR = { 0, 0, 0, 0 };
 RGBA_Color RGBA_WHITE = { 255, 255, 255, 255 };
+RGBA_Color RGBA_BLACK = { 0, 0, 0, 255 };
 
 /*** UI ELEMENTS ***/
 
@@ -35,6 +37,13 @@ static inline UIRect ui_rect_union (UIRect a, UIRect b) {
     u32 y2 = MAX (a.y + a.h, b.y + b.h);
 
     UIRect retval = { x1, y1, MAX (0, x2 - x1), MAX (0, y2 - y1) };
+    return retval;
+
+}
+
+RGBA_Color ui_rgba_color_create (u8 r, u8 g, u8 b, u8 a) { 
+
+    RGBA_Color retval = { r, g, b, a };
     return retval;
 
 }
@@ -592,12 +601,14 @@ u8 ui_font_load (Font *font, const char *filename, u32 pointSize,
 
 #pragma region TEXTBOX
 
+// mfor some optimization??
+// TODO: maybe create a static texture with a fix texture at a time
+// and a volitile one which will rely in the font cache for creating variable text each time
+
 // TODO: add seters for all the textbox elements
 
-// TODO: add bg color
-// FIXME: handle password logic
-TextBox *ui_textBox_create (u32 x, u32 y, const char *text, RGBA_Color textColor, Font *font,
-    bool isPassword) {
+TextBox *ui_textBox_create (u32 x, u32 y, RGBA_Color bgColor,
+    const char *text, RGBA_Color textColor, Font *font, bool isPassword) {
 
     TextBox *textBox = (TextBox *) malloc (sizeof (TextBox));
     if (textBox) {
@@ -607,26 +618,51 @@ TextBox *ui_textBox_create (u32 x, u32 y, const char *text, RGBA_Color textColor
         textBox->bgrect.x = x;
         textBox->bgrect.y = y;
         textBox->bgrect.w = textBox->bgrect.h = 0;
+        textBox->bgcolor = bgColor;
 
         textBox->textColor = textColor;
-        if (text) {
-            textBox->text = (char *) calloc (strlen (text) + 1, sizeof (char));
-            strcpy (textBox->text, text);
-        }
-
-        else textBox->text = NULL;
 
         textBox->ispassword = isPassword;
-        textBox->pswd = NULL;
+
+        if (text) {
+            if (isPassword) {
+                textBox->pswd = (char *) calloc (strlen (text) + 1, sizeof (char));
+                strcpy (textBox->pswd, text);
+                u32 len = strlen (text);
+                for (u8 i = 0; i < len; i++) textBox->text[i] = '*';
+            }
+
+            else {
+                textBox->text = (char *) calloc (strlen (text) + 1, sizeof (char));
+                strcpy (textBox->text, text);
+                textBox->pswd = NULL;
+            }
+        }
+
+        else textBox->text = textBox->pswd = NULL;
     }
 
     return textBox;
 
 }
 
+void ui_textBox_destroy (TextBox *textbox) {
+
+    if (textbox) {
+        textbox->font = NULL;
+        if (textbox->font) SDL_DestroyTexture (textbox->texture);
+        if (textbox->text) free (textbox->text);
+        if (textbox->pswd) free (textbox->pswd);
+
+        free (textbox);
+    }
+
+}
+
 // FIXME: create a function to just render the textbox and another to change the text 
 // we don't want to be generating surfaces each time... that is the point of all of these!!
 
+// TODO: move this form here!
 // FC_Default_RenderCallback
 UIRect ui_rect_render (SDL_Texture *srcTexture, UIRect *srcRect, u32 x, u32 y) {
 
@@ -646,6 +682,8 @@ UIRect ui_rect_render (SDL_Texture *srcTexture, UIRect *srcRect, u32 x, u32 y) {
 
 }
 
+// TODO: we need a better way for selecting font sizes!!
+// FIXME: handle text color change
 // TODO: handle flip
 // FIXME: handle password logic
 // TODO: maybe add scale
@@ -707,17 +745,14 @@ void ui_textbox_draw (TextBox *textbox, u32 x, u32 y) {
 
 }
 
-
-// extern void ui_textBox_destroy (TextBox *textbox);
-// extern void ui_textBox_setBorders (TextBox *textbox, u8 borderWidth, u32 borderColor);
 // extern void ui_textBox_update_text (TextBox *textbox, const char *text);
 // extern void ui_textbox_delete_text (TextBox *textbox);
-// extern void ui_textBox_draw (Console *console, TextBox *textbox);
 
 #pragma endregion
 
 /*** PUBLIC UI FUNCS ***/
 
+// init main ui elements
 u8 ui_init (void) {
 
     // init and load fonts
@@ -738,5 +773,20 @@ u8 ui_init (void) {
     }
 
     return 0;   // success
+
+}
+
+// destroy main ui elements
+u8 ui_destroy (void) {
+
+    // fonts
+    ui_font_destroy (mainFont);
+    TTF_Quit ();
+
+    #ifdef DEV
+    logMsg (stdout, SUCCESS, GAME, "Done cleaning up the UI!");
+    #endif
+
+    return 0;
 
 }
