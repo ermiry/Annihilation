@@ -6,6 +6,9 @@
 SDL_Window *main_window = NULL;
 SDL_Renderer *main_renderer = NULL;
 
+// TODO" i dont want this here!
+extern void ui_cursor_draw (void);
+
 // TODO: render by layers
 void render (void) {
 
@@ -30,6 +33,9 @@ void render (void) {
             default: break;
         }
     }
+
+    // render the cursor on top of everything
+    ui_cursor_draw ();
 
     SDL_RenderPresent (main_renderer);
 

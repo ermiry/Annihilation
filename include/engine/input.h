@@ -11,6 +11,8 @@ typedef enum MouseButton {
 
 } MouseButton;
 
+extern Vector2D mousePos;
+
 extern bool input_get_mouse_button_state (MouseButton button);
 
 extern bool input_is_key_down (const SDL_Scancode key);

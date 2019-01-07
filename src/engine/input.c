@@ -4,11 +4,15 @@
 
 #include "annihilation.h"
 
+#include "vector2d.h" 
+
 #include "engine/input.h"
 
 extern void quit (void);
 
 /*** Mouse ***/
+
+Vector2D mousePos = { 0, 0 };
 
 bool mouseButtonStates[N_MOUSE_BUTTONS];
 
@@ -66,6 +70,11 @@ void input_handle (SDL_Event event) {
     while (SDL_PollEvent (&event)) {
         switch (event.type) {
             case SDL_QUIT: quit (); break;
+
+            case SDL_MOUSEMOTION: 
+                mousePos.x = event.motion.x;
+                mousePos.y = event.motion.y;
+                break;
 
             case SDL_MOUSEBUTTONDOWN: input_on_mouse_button_down (event); break;
             case SDL_MOUSEBUTTONUP: input_on_mouse_button_up (event); break;

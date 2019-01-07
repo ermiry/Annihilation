@@ -8,6 +8,9 @@
 #include "ui.h"
 
 #include "engine/renderer.h"
+#include "engine/sprites.h"
+#include "engine/textures.h"
+#include "engine/input.h"
 
 #include "utils/log.h"
 #include "utils/myUtils.h"
@@ -959,13 +962,39 @@ void ui_textbox_draw (TextBox *textbox) {
 
 #pragma endregion
 
+#pragma region CURSOR
+
+SDL_Cursor *sysCursor; 
+Sprite *cursorImg = NULL;
+
+static void ui_cursor_init (void) {
+
+    // hide the system cursor inside the window
+    i32 cursorData[2] = { 0, 0 };
+    sysCursor = SDL_CreateCursor ((Uint8 *) cursorData, (Uint8 *) cursorData, 8, 8, 4, 4);
+    SDL_SetCursor (sysCursor);
+
+    cursorImg = sprite_load ("./assets/artwork/mapTile_087.png", main_renderer);
+    if (!cursorImg) logMsg (stderr, ERROR, NO_TYPE, "Failed to load cursor imgs!");
+
+}
+
+void ui_cursor_draw (void) {
+
+    cursorImg->dest_rect.x = mousePos.x;
+    cursorImg->dest_rect.y = mousePos.y;
+
+    SDL_RenderCopyEx (main_renderer, cursorImg->texture, &cursorImg->src_rect, &cursorImg->dest_rect, 
+        0, 0, NO_FLIP);   
+
+}
+
+#pragma endregion
+
 /*** PUBLIC UI FUNCS ***/
 
 // init main ui elements
 u8 ui_init (void) {
-
-    // init ui elements
-    ui_elements_init ();
 
     // init and load fonts
     TTF_Init ();
@@ -983,6 +1012,12 @@ u8 ui_init (void) {
         #endif
         return 1;
     }
+
+    // init ui elements
+    ui_elements_init ();
+
+    // init cursor
+    ui_cursor_init ();
 
     return 0;   // success
 
@@ -1002,6 +1037,8 @@ u8 ui_destroy (void) {
     #ifdef DEV
     logMsg (stdout, SUCCESS, GAME, "Done cleaning up the UI!");
     #endif
+
+    SDL_FreeCursor (sysCursor);
 
     return 0;
 
